@@ -1,13 +1,14 @@
 import SwiftUI
 
-// Sample Data Structure (ensure this matches your actual data model)
 struct CardStatItem: Identifiable {
     let id = UUID()
     var category: String
     var value: Int
 }
 
-struct CardView: View { // Assuming you renamed it back to CardView
+struct CardView: View {
+    @StateObject var themeManager = ThemeManager() // Manages theme state
+
     // Sample Data
     let cardTitle: String = "VANS OLD"
     let cardImagePlaceholderIconName: String = "photo.fill"
@@ -21,122 +22,148 @@ struct CardView: View { // Assuming you renamed it back to CardView
 
     var body: some View {
         ZStack {
-            // Screen Background
-            UIConfigRefactored.screenBackgroundColor
+            themeManager.currentPalette.screenBackground
                 .ignoresSafeArea()
 
             ScrollView {
-                VStack(alignment: .center, spacing: UIConfigRefactored.globalVerticalSpacing) {
+                VStack(alignment: .center, spacing: UIConfigLayout.globalVerticalSpacing) {
 
-                    // MARK: - Title Block (Framed with Outline)
+                    // MARK: - Title Block
                     Text(cardTitle)
-                        .font(UIConfigRefactored.titleFont)
-                        .foregroundColor(UIConfigRefactored.titleColor)
+                        .font(UIConfigLayout.titleFont)
+                        .foregroundColor(themeManager.currentPalette.titleText)
                         .multilineTextAlignment(.center)
-                        .padding(UIConfigRefactored.titleFrameInternalPadding)
-                        .frame(maxWidth: .infinity) // Key for width alignment
-                        .background(UIConfigRefactored.titleFrameBackgroundColor)
-                        .cornerRadius(UIConfigRefactored.defaultFrameCornerRadius)
+                        .padding(UIConfigLayout.titleFrameInternalPadding)
+                        .frame(maxWidth: .infinity)
+                        .background(themeManager.currentPalette.titleFrameBackground)
+                        .cornerRadius(UIConfigLayout.defaultFrameCornerRadius)
                         .overlay(
-                            RoundedRectangle(cornerRadius: UIConfigRefactored.defaultFrameCornerRadius)
-                                .stroke(UIConfigRefactored.frameOutlineColor, lineWidth: UIConfigRefactored.frameOutlineWidth)
+                            RoundedRectangle(cornerRadius: UIConfigLayout.defaultFrameCornerRadius)
+                                .stroke(themeManager.currentPalette.frameOutline, lineWidth: UIConfigLayout.frameOutlineWidth)
                         )
 
-                    // MARK: - Image Block (Framed with Outline)
-                    Rectangle() // Image Placeholder
-                        .fill(UIConfigRefactored.imagePlaceholderColor) // Inner color
-                        .aspectRatio(UIConfigRefactored.imageAspectRatio, contentMode: .fit)
-                        .frame(maxWidth: .infinity) // Key for width alignment
-                        .cornerRadius(UIConfigRefactored.defaultFrameCornerRadius) // Shape
-                        .overlay( // Icon on top
+                    // MARK: - Image Block
+                    Rectangle()
+                        .fill(themeManager.currentPalette.imagePlaceholderBackground)
+                        .aspectRatio(UIConfigLayout.imageAspectRatio, contentMode: .fit)
+                        .frame(maxWidth: .infinity)
+                        .cornerRadius(UIConfigLayout.defaultFrameCornerRadius)
+                        .overlay(
                             Image(systemName: cardImagePlaceholderIconName)
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 60, height: 60)
-                                .foregroundColor(Color.white.opacity(0.7))
+                                .resizable().scaledToFit().frame(width: 50, height: 50) // Slightly smaller icon
+                                .foregroundColor(Color.black.opacity(0.2))
                         )
-                        .overlay( // Outline for the image block
-                            RoundedRectangle(cornerRadius: UIConfigRefactored.defaultFrameCornerRadius)
-                                .stroke(UIConfigRefactored.frameOutlineColor, lineWidth: UIConfigRefactored.frameOutlineWidth)
-                        )
-
-
-                    // MARK: - Description Block (Framed with Outline)
-                    Text(cardDescription)
-                        .font(UIConfigRefactored.descriptionFont)
-                        .foregroundColor(UIConfigRefactored.descriptionTextColor)
-                        .multilineTextAlignment(.center)
-                        .padding(UIConfigRefactored.descriptionBoxInternalPadding)
-                        .frame(maxWidth: .infinity) // Key for width alignment
-                        .background(UIConfigRefactored.descriptionBoxBackgroundColor)
-                        .cornerRadius(UIConfigRefactored.defaultFrameCornerRadius)
                         .overlay(
-                            RoundedRectangle(cornerRadius: UIConfigRefactored.defaultFrameCornerRadius)
-                                .stroke(UIConfigRefactored.frameOutlineColor, lineWidth: UIConfigRefactored.frameOutlineWidth)
+                            RoundedRectangle(cornerRadius: UIConfigLayout.defaultFrameCornerRadius)
+                                .stroke(themeManager.currentPalette.frameOutline, lineWidth: UIConfigLayout.frameOutlineWidth)
                         )
 
-                    // MARK: - Stats Block (Framed with Outline)
-                    VStack(spacing: UIConfigRefactored.statsInternalElementsSpacing) {
-                        // "STATS" Header Bar
-                        Text("STATS")
-                            .font(UIConfigRefactored.statsHeaderFont)
-                            .foregroundColor(UIConfigRefactored.statsHeaderTextColor)
-                            .padding(UIConfigRefactored.statsHeaderInternalPadding)
-                            .background(UIConfigRefactored.statsHeaderBackgroundColor)
-                            .cornerRadius(UIConfigRefactored.statsHeaderCornerRadius)
+                    // MARK: - Description Block
+                    Text(cardDescription)
+                        .font(UIConfigLayout.descriptionFont)
+                        .foregroundColor(themeManager.currentPalette.descriptionText)
+                        .multilineTextAlignment(.center)
+                        .padding(UIConfigLayout.descriptionBoxInternalPadding)
+                        .frame(maxWidth: .infinity)
+                        .background(themeManager.currentPalette.descriptionBoxBackground)
+                        .cornerRadius(UIConfigLayout.defaultFrameCornerRadius)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: UIConfigLayout.defaultFrameCornerRadius)
+                                .stroke(themeManager.currentPalette.frameOutline, lineWidth: UIConfigLayout.frameOutlineWidth)
+                        )
 
-                        // 2x2 Grid for Stats
-                        LazyVGrid(
-                            columns: [GridItem(.flexible(), spacing: UIConfigRefactored.statsGridSpacing),
-                                      GridItem(.flexible(), spacing: UIConfigRefactored.statsGridSpacing)],
-                            spacing: UIConfigRefactored.statsGridSpacing
+                    // MARK: - Stats Block
+                    VStack(spacing: UIConfigLayout.statsInternalElementsSpacing) {
+                        Text("STATS") // "STATS" Header Bar
+                            .font(UIConfigLayout.statsHeaderFont)
+                            .foregroundColor(themeManager.currentPalette.statsHeaderText)
+                            .padding(UIConfigLayout.statsHeaderInternalPadding)
+                            .background(themeManager.currentPalette.statsHeaderBackground)
+                            .cornerRadius(UIConfigLayout.statsHeaderCornerRadius)
+
+                        LazyVGrid( // Stats Grid (Smaller Items)
+                            columns: [GridItem(.flexible(), spacing: UIConfigLayout.statsGridSpacing),
+                                      GridItem(.flexible(), spacing: UIConfigLayout.statsGridSpacing)],
+                            spacing: UIConfigLayout.statsGridSpacing
                         ) {
                             ForEach(stats) { statItem in
                                 IndividualStatView(category: statItem.category, value: statItem.value)
                             }
                         }
+
+                        // New Buttons HStack
+                        HStack(spacing: UIConfigLayout.buttonsHStackSpacing) {
+                            Button("Vibe") {
+                                print("Vibe button tapped") // Placeholder action
+                            }
+                            .font(UIConfigLayout.actionButtonFont)
+                            .padding(UIConfigLayout.actionButtonPadding)
+                            .foregroundColor(themeManager.currentPalette.buttonText)
+                            .frame(maxWidth: .infinity)
+                            .background(themeManager.currentPalette.buttonBackground)
+                            .cornerRadius(UIConfigLayout.actionButtonCornerRadius)
+                            .overlay(RoundedRectangle(cornerRadius: UIConfigLayout.actionButtonCornerRadius)
+                                .stroke(themeManager.currentPalette.buttonOutline, lineWidth: UIConfigLayout.actionButtonOutlineWidth))
+                            
+                            Button("Card Type") {
+                                themeManager.cycleTheme() // Cycles to the next theme
+                            }
+                            .font(UIConfigLayout.actionButtonFont)
+                            .padding(UIConfigLayout.actionButtonPadding)
+                            .foregroundColor(themeManager.currentPalette.buttonText)
+                            .frame(maxWidth: .infinity)
+                            .background(themeManager.currentPalette.buttonBackground)
+                            .cornerRadius(UIConfigLayout.actionButtonCornerRadius)
+                            .overlay(RoundedRectangle(cornerRadius: UIConfigLayout.actionButtonCornerRadius)
+                                .stroke(themeManager.currentPalette.buttonOutline, lineWidth: UIConfigLayout.actionButtonOutlineWidth))
+                        }
+                        .padding(.top, 5) // A little space above the buttons
                     }
-                    .padding(UIConfigRefactored.statsContainerInternalPadding)
-                    .frame(maxWidth: .infinity) // Key for width alignment
-                    .background(UIConfigRefactored.statsContainerBackgroundColor) // Inner color
-                    .cornerRadius(UIConfigRefactored.defaultFrameCornerRadius)
+                    .padding(UIConfigLayout.statsContainerInternalPadding)
+                    .frame(maxWidth: .infinity)
+                    .background(themeManager.currentPalette.statsContainerBackground)
+                    .cornerRadius(UIConfigLayout.defaultFrameCornerRadius)
                     .overlay(
-                        RoundedRectangle(cornerRadius: UIConfigRefactored.defaultFrameCornerRadius)
-                            .stroke(UIConfigRefactored.frameOutlineColor, lineWidth: UIConfigRefactored.frameOutlineWidth)
+                        RoundedRectangle(cornerRadius: UIConfigLayout.defaultFrameCornerRadius)
+                            .stroke(themeManager.currentPalette.frameOutline, lineWidth: UIConfigLayout.frameOutlineWidth)
                     )
                 }
-                .padding(.horizontal, UIConfigRefactored.contentHorizontalPadding) // L/R padding for all content
-                .padding(.vertical, UIConfigRefactored.contentVerticalPadding)   // Top/Bottom padding for scroll content
+                .padding(.horizontal, UIConfigLayout.contentHorizontalPadding)
+                .padding(.vertical, UIConfigLayout.contentVerticalPadding)
             }
         }
+        .environmentObject(themeManager) // Provide ThemeManager to the environment for subviews like IndividualStatView
     }
 }
 
-// MARK: - Individual Stat Item View (Unchanged, but uses UIConfig)
 struct IndividualStatView: View {
+    @EnvironmentObject var themeManager: ThemeManager // Access current theme
+
     let category: String
     let value: Int
 
     var body: some View {
-        VStack(spacing: 4) {
+        VStack(spacing: 2) { // Reduced spacing
             Text(category)
-                .font(UIConfigRefactored.statCategoryFont)
-                .foregroundColor(UIConfigRefactored.statCategoryColor)
+                .font(UIConfigLayout.statCategoryFont) // Uses smaller font from UIConfigLayout
+                .foregroundColor(themeManager.currentPalette.statCategoryText)
                 .lineLimit(1)
-                .minimumScaleFactor(0.8)
+                .minimumScaleFactor(0.7) // Allow more aggressive scaling if needed
             Text("\(value)")
-                .font(UIConfigRefactored.statValueFont)
-                .foregroundColor(UIConfigRefactored.statValueColor)
+                .font(UIConfigLayout.statValueFont) // Uses smaller font
+                .foregroundColor(themeManager.currentPalette.statValueText)
         }
         .frame(maxWidth: .infinity)
-        .frame(minHeight: UIConfigRefactored.statItemMinHeight)
-        .padding(UIConfigRefactored.statItemInternalPadding)
-        .background(UIConfigRefactored.statItemBackground)
-        .cornerRadius(UIConfigRefactored.statItemCornerRadius)
+        .frame(minHeight: UIConfigLayout.statItemMinHeight) // Uses smaller minHeight
+        .padding(UIConfigLayout.statItemInternalPadding) // Uses smaller padding
+        .background(themeManager.currentPalette.statItemBackground)
+        .cornerRadius(UIConfigLayout.statItemCornerRadius) // Uses smaller cornerRadius
     }
 }
 
 // MARK: - Preview
 #Preview {
     CardView()
+    // EnvironmentObject is automatically provided in CardView for its children,
+    // and CardView itself creates its @StateObject ThemeManager for the preview.
 }
