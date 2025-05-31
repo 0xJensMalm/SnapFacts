@@ -1,3 +1,5 @@
+// OpenAIPrompts.swift
+
 import Foundation
 
 /// Which “bucket” the prompt belongs to.
@@ -17,31 +19,41 @@ final class OpenAIPrompts {
     // MARK: - Presets
     private(set) var imagePrompts: [OpenAIPrompt] = [
         .init(
-            title: "Card Art • V1",
+            title: "Card Art • V2",
             body: """
-                  Create a vibrant, high-impact illustration suitable for a collectible
-                  stats card. Keep the background minimal; emphasise the subject with
-                  bold lighting, clean vector-style edges and rich colour contrast.
+                  Create a play-card style illustration that focuses on the main subject of the image (for example: “Birch tree”, “Man with a hat”, “Corona bottle”, “Scott e-bike” - make sure to get the correct characteristics and details like color etc.).  
+                  • Emphasize the subject with bold lines, clean edges, and vibrant colors.  
+                  • Use a minimal background so the subject stands out.  
+                  • Render it like a collectible card (flat shading, stylized shape, clear outline).  
                   """
         )
     ]
 
     private(set) var textPrompts: [OpenAIPrompt] = [
         .init(
-            title: "Analyse Product • V1",
+            title: "Analyse Product • V2",
             body: """
-                  You are a product analyst. From the provided image identify the item,
-                  describe it in 2–3 sentences, then infer exactly four compelling stats
-                  (quantitative or qualitative). Return **ONLY** valid minified JSON:
+                  Identify the main subject of the provided image (e.g., "Birch tree", "Man with a hat", "Corona bottle", "Scott e-bike"). 
+                  Return a minified JSON object with exactly four keys:
 
                   {
-                    "title": <string>,
-                    "description": <string>,
+                    "title": "<main subject>",                          // Simple name, e.g. "Birch tree"
+                    "description": "<fun fact about the object, max two sentences>", 
                     "stats": [
-                      { "category": <string>, "value": <string> },
-                      …
+                      { "category": "age",            "value": "<approx 10 years>" },
+                      { "category": "material type",  "value": "<rubber>" },
+                      { "category": "species",        "value": "<human>" },
+                      { "category": "<another cat>",  "value": "<value>" }
                     ]
                   }
+                  These are just example categories and values. You need to find new ones which fits the image, dont be afraid to be cheeky or use humour. 
+
+                  • Title: keep it very simple (e.g. “Birch tree”, “Man with a hat”, “Scott e-bike”).  
+                  • Description: a single fun fact about that object (max two sentences).  
+                  • Stats array: exactly 4 items.  
+                    – Each “category” and each “value” must use at most three words, and no more than 20 characters total.  
+                    – Example categories: age, material type, species, latin name, color, brand, model, etc.  
+                  • Return ONLY valid, minified JSON—no extra formatting, no line breaks.
                   """
         )
     ]
