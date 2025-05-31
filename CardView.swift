@@ -1,24 +1,19 @@
 import SwiftUI
 
-struct CardStatItem: Identifiable {
-    let id = UUID()
-    var category: String
-    var value: Int
-}
+// Make sure CardDataModels.swift is in your project and defines these:
+// enum StatValue: Decodable, Hashable { ... }
+// struct CardStatItem: Identifiable, Decodable, Hashable { ... var value: StatValue ... }
+// struct CardContent: Identifiable, Decodable { ... }
+// struct SampleCardData { ... }
 
 struct CardView: View {
     @StateObject var themeManager = ThemeManager() // Manages theme state
+    let cardContent: CardContent // MODIFIED: CardView now receives its data
 
-    // Sample Data
-    let cardTitle: String = "VANS OLD"
-    let cardImagePlaceholderIconName: String = "photo.fill"
-    let cardDescription: String = "An old shoe that never goes out of style. Always iconic."
-    let stats: [CardStatItem] = [
-        CardStatItem(category: "COMFORT", value: 84),
-        CardStatItem(category: "GRIP", value: 79),
-        CardStatItem(category: "STYLE", value: 92),
-        CardStatItem(category: "DURABILITY", value: 88)
-    ]
+    // MODIFIED: Initializer to accept the card content
+    init(cardContent: CardContent = SampleCardData.vansOldSkool) { // Default sample data for easy preview/use
+        self.cardContent = cardContent
+    }
 
     var body: some View {
         ZStack {
@@ -29,7 +24,7 @@ struct CardView: View {
                 VStack(alignment: .center, spacing: UIConfigLayout.globalVerticalSpacing) {
 
                     // MARK: - Title Block
-                    Text(cardTitle)
+                    Text(cardContent.title) // MODIFIED: Use data from cardContent
                         .font(UIConfigLayout.titleFont)
                         .foregroundColor(themeManager.currentPalette.titleText)
                         .multilineTextAlignment(.center)
@@ -42,24 +37,20 @@ struct CardView: View {
                                 .stroke(themeManager.currentPalette.frameOutline, lineWidth: UIConfigLayout.frameOutlineWidth)
                         )
 
-                    // MARK: - Image Block
-                    Rectangle()
-                        .fill(themeManager.currentPalette.imagePlaceholderBackground)
-                        .aspectRatio(UIConfigLayout.imageAspectRatio, contentMode: .fit)
+                    // MARK: - Image Block  (supports remote URLs now)
+                    RemoteImageView(source: cardContent.localImageName)
                         .frame(maxWidth: .infinity)
+                        .aspectRatio(UIConfigLayout.imageAspectRatio, contentMode: .fit)
+                        .background(themeManager.currentPalette.imagePlaceholderBackground)
                         .cornerRadius(UIConfigLayout.defaultFrameCornerRadius)
                         .overlay(
-                            Image(systemName: cardImagePlaceholderIconName)
-                                .resizable().scaledToFit().frame(width: 50, height: 50) // Slightly smaller icon
-                                .foregroundColor(Color.black.opacity(0.2))
-                        )
-                        .overlay(
                             RoundedRectangle(cornerRadius: UIConfigLayout.defaultFrameCornerRadius)
-                                .stroke(themeManager.currentPalette.frameOutline, lineWidth: UIConfigLayout.frameOutlineWidth)
+                                .stroke(themeManager.currentPalette.frameOutline,
+                                        lineWidth: UIConfigLayout.frameOutlineWidth)
                         )
 
                     // MARK: - Description Block
-                    Text(cardDescription)
+                    Text(cardContent.description) // MODIFIED: Use data from cardContent
                         .font(UIConfigLayout.descriptionFont)
                         .foregroundColor(themeManager.currentPalette.descriptionText)
                         .multilineTextAlignment(.center)
@@ -86,8 +77,8 @@ struct CardView: View {
                                       GridItem(.flexible(), spacing: UIConfigLayout.statsGridSpacing)],
                             spacing: UIConfigLayout.statsGridSpacing
                         ) {
-                            ForEach(stats) { statItem in
-                                IndividualStatView(category: statItem.category, value: statItem.value)
+                            ForEach(cardContent.stats) { statItem in // MODIFIED: Use data from cardContent
+                                IndividualStatView(category: statItem.category, value: statItem.value) // value is now StatValue
                             }
                         }
 
@@ -140,7 +131,7 @@ struct IndividualStatView: View {
     @EnvironmentObject var themeManager: ThemeManager // Access current theme
 
     let category: String
-    let value: Int
+    let value: StatValue // MODIFIED: Expects StatValue enum type
 
     var body: some View {
         VStack(spacing: 2) { // Reduced spacing
@@ -149,9 +140,11 @@ struct IndividualStatView: View {
                 .foregroundColor(themeManager.currentPalette.statCategoryText)
                 .lineLimit(1)
                 .minimumScaleFactor(0.7) // Allow more aggressive scaling if needed
-            Text("\(value)")
+            Text(value.displayString) // MODIFIED: Use displayString from StatValue
                 .font(UIConfigLayout.statValueFont) // Uses smaller font
                 .foregroundColor(themeManager.currentPalette.statValueText)
+                .lineLimit(1) // Add lineLimit for potentially longer string values
+                .minimumScaleFactor(0.5) // Allow more scaling for strings
         }
         .frame(maxWidth: .infinity)
         .frame(minHeight: UIConfigLayout.statItemMinHeight) // Uses smaller minHeight
@@ -163,7 +156,6 @@ struct IndividualStatView: View {
 
 // MARK: - Preview
 #Preview {
-    CardView()
-    // EnvironmentObject is automatically provided in CardView for its children,
-    // and CardView itself creates its @StateObject ThemeManager for the preview.
+    // MODIFIED: Provide the required cardContent data
+    CardView(cardContent: SampleCardData.vansOldSkool)
 }

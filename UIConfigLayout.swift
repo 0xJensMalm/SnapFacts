@@ -1,6 +1,16 @@
 import SwiftUI
 
 struct UIConfigLayout {
+    
+    // MARK: - Camera View
+    static let appHeaderFont: Font = .system(size: 22, weight: .bold) // Font for "Snap Facts"
+    static let appHeaderPadding: EdgeInsets = EdgeInsets(top: 12, leading: 20, bottom: 12, trailing: 20) // Internal padding for the header bar
+
+    // For the Bottom Controls Container
+    static let controlsContainerPadding: EdgeInsets = EdgeInsets(top: 15, leading: 15, bottom: 15, trailing: 15)// Internal padding for the button container
+    static let controlsContainerSpacing: CGFloat = 15 // Spacing for items within the controls container (e.g., New Picture button and main button)
+
+    
     // MARK: - Screen & Content Layout
     static let contentHorizontalPadding: CGFloat = 15
     static let contentVerticalPadding: CGFloat = 20
