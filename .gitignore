@@ -36,7 +36,6 @@ fastlane/test_output
 *.temp
 *.DS_Store
 
-# OpenAI key or secrets (EXCLUDE this file)
-OpenAIKey.swift
-EOF
-OpenAIKey.swift
+# Secrets
+Secrets.xcconfig
+*.xcconfig # If you want to ignore all xcconfig by default and only include specific ones
