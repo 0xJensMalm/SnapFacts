@@ -1,0 +1,41 @@
+cat << EOF > .gitignore
+# Xcode
+DerivedData/
+build/
+*.xcworkspace
+!default.xcworkspace
+xcuserdata/
+*.xcuserstate
+
+# Swift Package Manager
+.swiftpm
+.build/
+Packages/
+Package.resolved
+
+# CocoaPods
+Pods/
+Podfile.lock
+
+# Carthage
+Carthage/Build
+
+# Fastlane
+fastlane/report.xml
+fastlane/screenshots
+fastlane/test_output
+
+# Archives
+*.xcarchive
+
+# Temporary files
+*.moved-aside
+*.swp
+*.lock
+*.tmp
+*.temp
+*.DS_Store
+
+# OpenAI key or secrets (EXCLUDE this file)
+OpenAIKey.swift
+EOF

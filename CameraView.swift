@@ -113,35 +113,31 @@ struct CameraView: View {
                 if currentCaptureState != .permissionDenied {
                     VStack(spacing: 0) {
 
-                        // Header
-                        Text("Snap Facts")
-                            .font(UIConfigLayout.appHeaderFont)
-                            .foregroundColor(themeManager.currentPalette.titleText)
-                            .padding(UIConfigLayout.appHeaderPadding)
-                            .frame(maxWidth: .infinity, alignment: .center)
-                            .background(themeManager.currentPalette.titleFrameBackground)
-                            .cornerRadius(UIConfigLayout.defaultFrameCornerRadius)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: UIConfigLayout.defaultFrameCornerRadius)
-                                    .stroke(themeManager.currentPalette.frameOutline,
-                                            lineWidth: UIConfigLayout.frameOutlineWidth)
-                            )
-                            .padding(.horizontal, UIConfigLayout.contentHorizontalPadding)
-                            .padding(.top, 10)
+                        // Header (Logo Banner)
+                        ZStack {
+                            Color(red: 0.99, green: 0.94, blue: 0.84) // Tan background
+
+                            VStack {
+                                Spacer()
+                                Image("snapFacts")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(maxHeight: 120) // Ensure logo shows
+                                Spacer()
+                            }
+                        }
+                        .frame(maxWidth: .infinity)
+                        .frame(height: UIScreen.main.bounds.height * 0.2) // 30% of screen height
 
                         Spacer()
-
                         // Bottom controls
                         VStack(spacing: UIConfigLayout.controlsContainerSpacing) {
-
                             if currentCaptureState == .imagePreview {
                                 Button("New Picture", action: retakePicture)
                                     .modifier(CameraButtonModifier(
-                                        backgroundColor:
-                                            themeManager.currentPalette.secondaryActionButtonBackground ??
-                                            themeManager.currentPalette.buttonBackground,
-                                        textColor: themeManager.currentPalette.buttonText,
-                                        outlineColor: themeManager.currentPalette.buttonOutline
+                                        backgroundColor: Color.red, // Red background
+                                        textColor: Color(red: 0.99, green: 0.94, blue: 0.84), // Tan text
+                                        outlineColor: Color.black // Optional: black border
                                     ))
                             }
 
@@ -153,22 +149,15 @@ struct CameraView: View {
                                     : confirmPicture()
                                 })
                                 .modifier(CameraButtonModifier(
-                                    backgroundColor:
-                                        themeManager.currentPalette.primaryActionButtonBackground ??
-                                        (currentCaptureState == .capturing ? .blue : .green),
-                                    textColor: themeManager.currentPalette.buttonText,
-                                    outlineColor: themeManager.currentPalette.buttonOutline
+                                    backgroundColor: Color.red, // Red background
+                                    textColor: Color(red: 0.99, green: 0.94, blue: 0.84), // Tan text
+                                    outlineColor: Color.black // Optional: black border
                                 ))
                         }
                         .padding(UIConfigLayout.controlsContainerPadding)
                         .frame(maxWidth: .infinity)
-                        .background(themeManager.currentPalette.statsContainerBackground)
-                        .cornerRadius(UIConfigLayout.defaultFrameCornerRadius)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: UIConfigLayout.defaultFrameCornerRadius)
-                                .stroke(themeManager.currentPalette.frameOutline,
-                                        lineWidth: UIConfigLayout.frameOutlineWidth)
-                        )
+                        .background(Color(red: 0.99, green: 0.94, blue: 0.84)) // Tan fill
+                        .ignoresSafeArea(edges: .bottom)
                         .padding(.horizontal, UIConfigLayout.contentHorizontalPadding)
                         .padding(.bottom, 10)
                     }
