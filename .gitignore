@@ -39,3 +39,4 @@ fastlane/test_output
 # OpenAI key or secrets (EXCLUDE this file)
 OpenAIKey.swift
 EOF
+OpenAIKey.swift
