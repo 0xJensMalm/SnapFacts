@@ -45,28 +45,31 @@ struct CardStatItem: Identifiable, Hashable {
 }
 
 /// The fully‐assembled card data (title, description, image URL or name, plus stats).
+/// Using `localImageName` to match the fix in CardGeneratorViewModel.
 struct CardContent: Identifiable, Hashable {
     let id: String
     let title: String
     let description: String
-    let localImageName: String    // can be either a local asset name or a remote URL string
+    let localImageName: String  // This is the image URL string for the card image.
     let stats: [CardStatItem]
 }
 
 /// The JSON shape we expect back from Vision‐Chat analysis:
 /// {
 ///   "title": "string",
-///   "description": "string",
-///   "stats": [ { "category": "string", "value": "string or number" }, … ]
+///   "description": "string", // For the card's text
+///   "stats": [ { "category": "string", "value": "string" }, … ], // Value is string, converted later
+///   "detailedSubjectDescription": "string" // For generating the new image
 /// }
 struct AnalysisResult: Decodable {
     struct Stat: Decodable {
         let category: String
-        let value: String
+        let value: String // OpenAI will return numbers as strings if instructed; ViewModel will parse
     }
     let title: String
     let description: String
     let stats: [Stat]
+    let detailedSubjectDescription: String // Essential for generating the new image
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -80,8 +83,8 @@ enum SampleCardData {
         id: "vans_old_skool_001",
         title: "VANS OLD SKOOL",
         description:
-          "The Vans Old Skool: a timeless skate shoe with side stripe, durable canvas & suede upper, and signature waffle outsole. Iconic style meets everyday comfort.",
-        localImageName: "https://example.com/images/vans_old_skool.png",
+            "The Vans Old Skool: a timeless skate shoe with side stripe, durable canvas & suede upper, and signature waffle outsole. Iconic style meets everyday comfort.",
+        localImageName: "https://images.vans.com/is/image/Vans/VN000D3HY28-HERO?$STANDARD_IMAGE$", // Example URL
         stats: [
             CardStatItem(category: "COMFORT",    value: .string("High")),
             CardStatItem(category: "DURABILITY", value: .string("Very High")),
@@ -92,16 +95,14 @@ enum SampleCardData {
 
     // You can add more “pre‐baked” CardContent instances here if you like:
     //
-    // static let airForceOne = CardContent(
-    //     id: "nike_air_force_one_001",
-    //     title: "NIKE AIR FORCE 1",
-    //     description: "The iconic Nike Air Force 1 basketball sneaker, originally released in 1982...",
-    //     localImageName: "nike_air_force_one_asset",
+    // static let anotherExample = CardContent(
+    //     id: "example_002",
+    //     title: "ANOTHER EXAMPLE",
+    //     description: "Some description here.",
+    //     localImageName: "https://example.com/another_image.png",
     //     stats: [
-    //         CardStatItem(category: "COMFORT",    value: .string("Moderate")),
-    //         CardStatItem(category: "TRACTION",   value: .string("Excellent")),
-    //         CardStatItem(category: "BRANDING",   value: .string("Iconic")),
-    //         CardStatItem(category: "PRICE",      value: .int(90))
+    //         CardStatItem(category: "AWESOMENESS", value: .string("Max")),
+    //         CardStatItem(category: "RARITY", value: .int(100))
     //     ]
     // )
 }

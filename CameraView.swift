@@ -1,3 +1,10 @@
+//
+//  CameraView.swift
+//  YourAppTarget
+//
+//  Main camera screen with “Options” button to choose models.
+//
+
 import SwiftUI
 import UIKit     // for UIImage
 
@@ -44,6 +51,9 @@ struct CameraView: View {
 
     // OpenAI generator
     @StateObject private var generator = CardGeneratorViewModel()
+
+    // **NEW**: whether to show the sheet for model options
+    @State private var showModelOptions = false
 
     // MARK: - Helpers
     private func handleTakePictureRequest() { triggerCapture = true }
@@ -113,45 +123,64 @@ struct CameraView: View {
                 if currentCaptureState != .permissionDenied {
                     VStack(spacing: 0) {
 
-                        // Header (Logo Banner)
+                        // Header (Logo Banner) + “Options” button
                         ZStack {
                             Color(red: 0.99, green: 0.94, blue: 0.84) // Tan background
 
-                            VStack {
+                            HStack {
                                 Spacer()
-                                Image("snapFacts")
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(maxHeight: 120) // Ensure logo shows
+
+                                VStack {
+                                    Spacer()
+                                    Image("snapFacts")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(maxHeight: 120) // Ensure logo shows
+                                    Spacer()
+                                }
+
                                 Spacer()
+
+                                // **Options** (gear) button
+                                Button {
+                                    showModelOptions = true
+                                } label: {
+                                    Image(systemName: "gearshape.fill")
+                                        .font(.title2)
+                                        .foregroundColor(.black)
+                                        .padding(.trailing, 16)
+                                }
                             }
                         }
                         .frame(maxWidth: .infinity)
-                        .frame(height: UIScreen.main.bounds.height * 0.2) // 30% of screen height
+                        .frame(height: UIScreen.main.bounds.height * 0.2)
 
                         Spacer()
+
                         // Bottom controls
                         VStack(spacing: UIConfigLayout.controlsContainerSpacing) {
                             if currentCaptureState == .imagePreview {
                                 Button("New Picture", action: retakePicture)
                                     .modifier(CameraButtonModifier(
-                                        backgroundColor: Color.red, // Red background
-                                        textColor: Color(red: 0.99, green: 0.94, blue: 0.84), // Tan text
-                                        outlineColor: Color.black // Optional: black border
+                                        backgroundColor: Color.red,
+                                        textColor: Color(red: 0.99, green: 0.94, blue: 0.84),
+                                        outlineColor: Color.black
                                     ))
                             }
 
                             Button(
                                 currentCaptureState == .capturing ? "Analyze" : "Confirm",
                                 action: {
-                                    currentCaptureState == .capturing
-                                    ? handleTakePictureRequest()
-                                    : confirmPicture()
+                                    if currentCaptureState == .capturing {
+                                        handleTakePictureRequest()
+                                    } else {
+                                        confirmPicture()
+                                    }
                                 })
                                 .modifier(CameraButtonModifier(
-                                    backgroundColor: Color.red, // Red background
-                                    textColor: Color(red: 0.99, green: 0.94, blue: 0.84), // Tan text
-                                    outlineColor: Color.black // Optional: black border
+                                    backgroundColor: Color.red,
+                                    textColor: Color(red: 0.99, green: 0.94, blue: 0.84),
+                                    outlineColor: Color.black
                                 ))
                         }
                         .padding(UIConfigLayout.controlsContainerPadding)
@@ -202,13 +231,13 @@ struct CameraView: View {
                         UIApplication.shared.open(url)
                     }
                 }
-                Button("Cancel", role: .cancel) {}
+                Button("Cancel", role: .cancel) { }
             } message: {
                 Text("To use the camera, please enable access in your iPhone's Settings app.")
             }
             // ───────── Navigation to generated card ─────────
             .navigationDestination(isPresented: Binding(
-                get: { if case .success = generator.phase { true } else { false } },
+                get: { if case .success = generator.phase { return true } else { return false } },
                 set: { _ in }
             )) {
                 if case .success(let card) = generator.phase {
@@ -216,9 +245,67 @@ struct CameraView: View {
                         .toolbar { Button("Done") { generator.reset() } }
                 }
             }
+            // ───────── Model Options Sheet ─────────
+            .sheet(isPresented: $showModelOptions) {
+                VStack(spacing: 24) {
+                    Text("Select Models")
+                        .font(.headline)
+                        .padding(.top, 16)
+                    
+                    // MARK: – Text/Vision Model Picker
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Text/Vision Model:")
+                            .font(.subheadline)
+                            .bold()
+                        Picker("Text Model", selection: $generator.selectedTextModel) {
+                            Text("GPT-4.1").tag("gpt-4.1")                    //
+                            Text("GPT-4.1 Mini").tag("gpt-4.1-mini")
+                            Text("GPT-4.O Mini").tag("gpt-4o-mini")
+                            Text("GPT-4O").tag("gpt-4o")
+                            Text("GPT-3.5 Turbo").tag("gpt-3.5-turbo")
+                        }
+                        .pickerStyle(.wheel)
+                        .frame(height: 100)
+                    }
+                    .padding(.horizontal, 16)
+                    
+                    // MARK: – Image Model Picker
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Image Model:")
+                            .font(.subheadline)
+                            .bold()
+                        Picker("Image Model", selection: $generator.selectedImageModel) {
+                            Text("DALL·E 3").tag("dall-e-3")             //
+                            Text("DALL·E 2").tag("dall-e-2")
+                            Text("GPT Image 1").tag("gpt-image-1")       //
+                        }
+                        .pickerStyle(.wheel)
+                        .frame(height: 100)
+                    }
+                    .padding(.horizontal, 16)
+                    
+                    Spacer()
+                    
+                    Button("Done") {
+                        showModelOptions = false
+                        // Recreate the service with the new model IDs
+                        generator.updateServiceModels()
+                    }
+                    .font(.headline)
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                    .background(Color.red)
+                    .foregroundColor(.white)
+                    .cornerRadius(8)
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 16)
+                }
+            }
         }
     }
 }
 
 // MARK: - Preview
-#Preview { CameraView() }
+#Preview {
+    CameraView()
+}
