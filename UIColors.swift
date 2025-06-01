@@ -1,10 +1,13 @@
 import SwiftUI
 
-// Snap Facts Brand Colors (derived from logo)
+// Snap Facts Brand Colors (derived from logo - user provided)
 extension Color {
-    static let snapFactsBeige = Color(hex: "#F5EEDC")
-    static let snapFactsDark = Color(hex: "#231F20")
-    static let snapFactsRedOrange = Color(hex: "#D9534F")
+    static let snapFactsBeige = Color(hex: "#F8E5BE") // Dutch white (tan fill)
+    static let snapFactsDark = Color(hex: "#22231E")  // Eerie black
+    static let snapFactsRedOrange = Color(hex: "#C8553F") // Jasper (red boxes)
+    // Additional provided colors if needed later:
+    // static let snapFactsChestnut = Color(hex: "#904636")
+    // static let snapFactsBattleshipGray = Color(hex: "#7D7969")
 }
 
 // Helper to initialize Color from hex string
@@ -67,12 +70,40 @@ struct ThemePalette {
 
 // 2. Define different themes
 enum ThemeType: CaseIterable, Identifiable {
-    case defaultYellow, vibrantBlue, forestGreen, monochrome, cameraTheme // ADDED .cameraTheme here
+    case snapFactsTheme, defaultYellow, vibrantBlue, forestGreen, monochrome, cameraTheme // ADDED .snapFactsTheme as the new primary
     
     var id: Self { self }
 
     var palette: ThemePalette {
         switch self {
+        case .snapFactsTheme:
+            return ThemePalette(
+                screenBackground: Color.snapFactsBeige.opacity(0.7), // A slightly transparent beige for the overall screen
+                frameOutline: Color.snapFactsDark, // Dark outline for the main card
+
+                titleText: Color.snapFactsDark,
+                titleFrameBackground: Color.snapFactsRedOrange,
+
+                imagePlaceholderBackground: Color.snapFactsRedOrange.opacity(0.8),
+
+                descriptionText: Color.snapFactsDark,
+                descriptionBoxBackground: Color.snapFactsRedOrange,
+
+                statsContainerBackground: Color.snapFactsRedOrange,
+                statsHeaderText: Color.snapFactsBeige, // Beige text on red-orange header
+                statsHeaderBackground: Color.snapFactsDark, // Dark header background for contrast
+                statCategoryText: Color.snapFactsDark,
+                statValueText: Color.snapFactsDark,
+                statItemBackground: Color.snapFactsBeige.opacity(0.7), // Lighter beige for stat items
+                
+                buttonText: Color.snapFactsBeige,
+                buttonBackground: Color.snapFactsDark, // Dark buttons
+                buttonOutline: Color.snapFactsRedOrange, // Red-orange outline for buttons
+                
+                primaryActionButtonBackground: Color.snapFactsDark,
+                secondaryActionButtonBackground: Color.snapFactsDark.opacity(0.8)
+            )
+        // NOTE: The 'case .defaultYellow:' below is the correct continuation of the primary switch
         case .defaultYellow:
             return ThemePalette(
                 screenBackground: Color.yellow.opacity(0.4),
@@ -193,7 +224,7 @@ class ThemeManager: ObservableObject {
     @Published var currentThemeType: ThemeType
     
     // ADDED Initializer to set a default or specific initial theme
-    init(initialTheme: ThemeType = .defaultYellow) {
+    init(initialTheme: ThemeType = .snapFactsTheme) { // Set .snapFactsTheme as the default
         self.currentThemeType = initialTheme
     }
     

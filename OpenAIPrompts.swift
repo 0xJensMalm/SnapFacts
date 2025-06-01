@@ -21,22 +21,17 @@ final class OpenAIPrompts {
         .init(
             title: "Card Art • V3", // Updated version
             body: """
-            A collectible card art style illustration of [SUBJECT_DESCRIPTION].
-            The subject should be the clear focus.
-            Key style features to emphasize:
-            • Bold lines, clean edges, and vibrant colors.
-            • A minimal or stylized background that makes the [SUBJECT_DESCRIPTION] stand out.
-            • Rendered in a flat shading, stylized shape, with a clear outline, suitable for a unique collectible card.
+            Vibrant trading card illustration of [SUBJECT_DESCRIPTION]. Subject: centered, easily recognizable, with a dynamic 'splash art' background (e.g., energy bursts, stylized motion lines, or a focused color explosion) making it pop. Style: consistent, reminiscent of modern Pokemon or collectible playcard art, featuring bold lines and a clean, polished look. The focus should be entirely on the subject with minimal background scenery.
             """
         ),
         // You can add more image style prompts here
-        .init(
+       /* .init(
             title: "Photorealistic Card Art",
             body: """
             A photorealistic image of [SUBJECT_DESCRIPTION], suitable for a collectible card.
             Focus on high detail and realistic textures. The background should be simple or a subtle gradient.
             """
-        )
+        )*/
     ]
 
     private(set) var textPrompts: [OpenAIPrompt] = [
@@ -48,7 +43,7 @@ final class OpenAIPrompts {
 
             {
               "title": "<Simple name for the card title, e.g., 'Vans Old Skool', 'Birch Tree', 'Mysterious Orb'>",
-              "description": "<A fun, cheeky, or interesting fact/overview about the object for the card's text, max two sentences. e.g., 'A timeless skate classic known for its iconic sidestripe and sturdy build.'>",
+              "description": "<An interesting fact about the object for the card's text, max two sentences. e.g., 'The Vans company was founded by the same person as... Or: This tree first saw light the same year as... or [plant] is used for medical purposes like. Going technical is fine!'>",
               "stats": [
                 { "category": "<attr1 name>", "value": "<value1>" },
                 { "category": "<attr2 name>", "value": "<value2>" },

@@ -7,7 +7,7 @@ struct CardBackView: View {
         ZStack {
             Color.snapFactsBeige // Background color from the logo palette
 
-            Image("SnapFactsLogo") // Assuming your logo asset is named this
+            Image("snapFacts") // Assuming your logo asset is named this
                 .resizable()
                 .scaledToFit()
                 .padding(UIConfigLayout.globalVerticalSpacing * 2) // Generous padding around the logo

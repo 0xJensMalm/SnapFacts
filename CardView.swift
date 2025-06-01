@@ -136,6 +136,10 @@ struct CardView: View {
                 .rotation3DEffect(.degrees(180), axis: (x: 0, y: 1, z: 0)) // Pre-rotate back view
         }
         .cornerRadius(UIConfigLayout.defaultFrameCornerRadius * 1.5) // Outer card corner radius
+        .overlay(
+            RoundedRectangle(cornerRadius: UIConfigLayout.defaultFrameCornerRadius * 1.5)
+                .stroke(themeManager.currentPalette.frameOutline, lineWidth: UIConfigLayout.frameOutlineWidth * 1.2) // Use theme's frame outline
+        )
         .shadow(color: .black.opacity(0.3), radius: 8, x: 0, y: 4) // Slightly softer shadow for the whole card
 
 
