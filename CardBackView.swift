@@ -5,7 +5,7 @@ struct CardBackView: View {
 
     var body: some View {
         ZStack {
-            Color.snapFactsBeige // Background color from the logo palette
+            themeManager.currentTheme.cardBackground // Background color from the current theme
 
             Image("snapFacts") // Assuming your logo asset is named this
                 .resizable()
@@ -16,7 +16,7 @@ struct CardBackView: View {
         .cornerRadius(UIConfigLayout.defaultFrameCornerRadius * 1.5) // Match front card's outer corner radius
         .overlay(
             RoundedRectangle(cornerRadius: UIConfigLayout.defaultFrameCornerRadius * 1.5)
-                .stroke(Color.snapFactsDark, lineWidth: UIConfigLayout.frameOutlineWidth * 1.5) // Outline using logo's dark color
+                .stroke(themeManager.currentTheme.innerFrameLine, lineWidth: UIConfigLayout.frameOutlineWidth * 1.5) // Outline using current theme's inner frame line color // Outline using logo's dark color
         )
     }
 }

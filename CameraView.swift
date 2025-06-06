@@ -36,7 +36,7 @@ struct CameraView: View {
     enum CameraCaptureState { case capturing, imagePreview, permissionDenied }
 
     // UI / theme
-    @StateObject private var themeManager = ThemeManager(initialTheme: .cameraTheme)
+    @StateObject private var themeManager = ThemeManager()
     @State private var currentCaptureState: CameraCaptureState = .capturing
 
     // Captured image
@@ -94,7 +94,7 @@ struct CameraView: View {
                                 .resizable()
                                 .scaledToFit()
                                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                                .background(Color.black)
+                                .background(themeManager.currentTheme.cardBackground)
                         }
 
                     case .permissionDenied:
@@ -125,7 +125,7 @@ struct CameraView: View {
 
                         // Header (Logo Banner) + “Options” button
                         ZStack {
-                            Color(red: 0.99, green: 0.94, blue: 0.84) // Tan background
+                            themeManager.currentTheme.bottomContainerBackground // Themed background
 
                             HStack {
                                 Spacer()
@@ -147,7 +147,7 @@ struct CameraView: View {
                                 } label: {
                                     Image(systemName: "gearshape.fill")
                                         .font(.title2)
-                                        .foregroundColor(.black)
+                                        .foregroundColor(themeManager.currentTheme.titleText)
                                         .padding(.trailing, 16)
                                 }
                             }
@@ -162,9 +162,9 @@ struct CameraView: View {
                             if currentCaptureState == .imagePreview {
                                 Button("New Picture", action: retakePicture)
                                     .modifier(CameraButtonModifier(
-                                        backgroundColor: Color.red,
-                                        textColor: Color(red: 0.99, green: 0.94, blue: 0.84),
-                                        outlineColor: Color.black
+                                        backgroundColor: Color.red, // Destructive action, keep red
+                                        textColor: themeManager.currentTheme.tagText, // Themed text
+                                        outlineColor: themeManager.currentTheme.innerFrameLine // Themed outline
                                     ))
                             }
 
@@ -178,14 +178,14 @@ struct CameraView: View {
                                     }
                                 })
                                 .modifier(CameraButtonModifier(
-                                    backgroundColor: Color.red,
-                                    textColor: Color(red: 0.99, green: 0.94, blue: 0.84),
-                                    outlineColor: Color.black
+                                    backgroundColor: themeManager.currentTheme.tagBackground, // Themed background
+                                    textColor: themeManager.currentTheme.tagText, // Themed text
+                                    outlineColor: themeManager.currentTheme.innerFrameLine // Themed outline
                                 ))
                         }
                         .padding(UIConfigLayout.controlsContainerPadding)
                         .frame(maxWidth: .infinity)
-                        .background(Color(red: 0.99, green: 0.94, blue: 0.84)) // Tan fill
+                        .background(themeManager.currentTheme.bottomContainerBackground) // Themed fill
                         .ignoresSafeArea(edges: .bottom)
                         .padding(.horizontal, UIConfigLayout.contentHorizontalPadding)
                         .padding(.bottom, 10)

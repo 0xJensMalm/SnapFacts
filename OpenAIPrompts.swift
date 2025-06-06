@@ -21,7 +21,7 @@ final class OpenAIPrompts {
         .init(
             title: "Card Art • V3", // Updated version
             body: """
-            Vibrant trading card illustration of [SUBJECT_DESCRIPTION]. Subject: centered, easily recognizable, with a dynamic 'splash art' background (e.g., energy bursts, stylized motion lines, or a focused color explosion) making it pop. Style: consistent, reminiscent of modern Pokemon or collectible playcard art, featuring bold lines and a clean, polished look. The focus should be entirely on the subject with minimal background scenery.
+            Make an old school type illustration that fits a trading card game, think magic the gathering.   [SUBJECT_DESCRIPTION]. Subject: centered, easily recognizable, Style: consistent trading card game art.The focus should be entirely on the subject with minimal background scenery.
             """
         ),
         // You can add more image style prompts here
@@ -38,11 +38,11 @@ final class OpenAIPrompts {
         .init(
             title: "Analyse Object • V3", // Updated version
             body: """
-            Identify the main subject of the provided image (e.g., "Birch tree", "Vans Old Skool shoes", "Scott e-bike").
+            We are creating metadata for a digital trading card. Identify the main subject of the provided image (e.g., "Birch tree", "Vans Old Skool shoes", "Scott e-bike").
             Return a minified JSON object with exactly four keys: "title", "description", "stats", and "detailedSubjectDescription".
 
             {
-              "title": "<Simple name for the card title, e.g., 'Vans Old Skool', 'Birch Tree', 'Mysterious Orb'>",
+              "title": "<Find a fitting title with max 8 characters that will in capital letters on top of the card. '>",
               "description": "<An interesting fact about the object for the card's text, max two sentences. e.g., 'The Vans company was founded by the same person as... Or: This tree first saw light the same year as... or [plant] is used for medical purposes like. Going technical is fine!'>",
               "stats": [
                 { "category": "<attr1 name>", "value": "<value1>" },
