@@ -18,175 +18,233 @@ struct CardView: View {
     @State private var isFlipped: Bool = false
 
 
+    // Colors based on the new design (can be moved to ThemeManager/UIColors later)
+    struct NewCardColors {
+        static let cardBackground = Color(red: 0.96, green: 0.94, blue: 0.90) // Cream/Beige
+        static let titleText = Color(red: 0.4, green: 0.49, blue: 0.5) // Muted dark teal/grey
+        static let frameBorder = Color(red: 0.4, green: 0.49, blue: 0.5)
+        static let imageFrameBackground = Color(red: 0.87, green: 0.91, blue: 0.93) // Pale sky blue/light grey
+        static let infoBarBackground = Color(red: 0.4, green: 0.49, blue: 0.5)
+        static let infoBarText = Color(red: 0.96, green: 0.94, blue: 0.90)
+        static let tagBackground = Color(red: 0.98, green: 0.76, blue: 0.45) // Yellow/Ochre
+        static let tagText = Color(red: 0.2, green: 0.2, blue: 0.2) // Dark grey/black
+        static let idNumberText = Color(red: 0.2, green: 0.2, blue: 0.2)
+        static let idNameText = Color(red: 0.25, green: 0.25, blue: 0.25)
+        static let disclaimerText = Color(red: 0.6, green: 0.6, blue: 0.6) // Light grey
+        static let fingerprintBackground = Color(red: 0.8, green: 0.85, blue: 0.86)
+        static let qrCodePlaceholder = Color.gray
+        static let scanToText = Color(red: 0.2, green: 0.2, blue: 0.2)
+    }
+
+    // Fonts based on the new design (can be moved to UIConfigLayout or defined better)
+    struct NewCardFonts {
+        static let title = Font.system(size: 48, weight: .bold, design: .default)
+        static let infoBar = Font.system(size: 10, weight: .medium, design: .default)
+        static let tag = Font.system(size: 10, weight: .bold, design: .default)
+        static let idNumber = Font.system(size: 40, weight: .heavy, design: .default)
+        static let idName = Font.system(size: 14, weight: .medium, design: .default)
+        static let disclaimer = Font.system(size: 7, weight: .regular, design: .default)
+        static let scanTo = Font.system(size: 10, weight: .bold, design: .default)
+    }
+
+
     // MODIFIED: Initializer to accept the card content
     init(cardContent: CardContent = SampleCardData.vansOldSkool) { // Default sample data for easy preview/use
         self.cardContent = cardContent
     }
 
+    // Private helper view for styling info tags
+    private struct InfoTagView: View {
+        let text: String
+        let scale: CGFloat
+
+        var body: some View {
+            Text(text)
+                .font(NewCardFonts.tag)
+                .foregroundColor(NewCardColors.tagText)
+                .padding(.horizontal, 10 * scale)
+                .padding(.vertical, 4 * scale)
+                .background(NewCardColors.tagBackground)
+                .clipShape(Capsule())
+        }
+    }
+
     var body: some View {
-        // Front face of the card
-        let cardFrontFace = VStack(alignment: .center, spacing: UIConfigLayout.globalVerticalSpacing) {
-            // MARK: - Title Block
-            Text(cardContent.title)
-                .font(UIConfigLayout.titleFont)
-                .foregroundColor(themeManager.currentPalette.titleText)
-                .multilineTextAlignment(.center)
-                .padding(UIConfigLayout.titleFrameInternalPadding)
-                .frame(maxWidth: .infinity)
-                .background(themeManager.currentPalette.titleFrameBackground)
-                .cornerRadius(UIConfigLayout.defaultFrameCornerRadius)
-                .overlay(
-                    RoundedRectangle(cornerRadius: UIConfigLayout.defaultFrameCornerRadius)
-                        .stroke(themeManager.currentPalette.frameOutline, lineWidth: UIConfigLayout.frameOutlineWidth)
-                )
+        GeometryReader { geometry in
+            let cardWidth = geometry.size.width * 0.8
+            let baseCardWidth: CGFloat = 320
+            let baseCardHeight: CGFloat = 500
+            let cardAspectRatio = baseCardHeight / baseCardWidth
+            let cardHeight = cardWidth * cardAspectRatio
+            let scale = cardWidth / baseCardWidth
 
-            // MARK: - Image Block
-            RemoteImageView(source: cardContent.localImageName)
-                .frame(maxWidth: .infinity)
-                .aspectRatio(UIConfigLayout.imageAspectRatio, contentMode: .fit)
-                .background(themeManager.currentPalette.imagePlaceholderBackground)
-                .cornerRadius(UIConfigLayout.defaultFrameCornerRadius)
-                .overlay(
-                    RoundedRectangle(cornerRadius: UIConfigLayout.defaultFrameCornerRadius)
-                        .stroke(themeManager.currentPalette.frameOutline,
-                                lineWidth: UIConfigLayout.frameOutlineWidth)
-                )
+            // NEW Card Front Face Design
+            let cardFrontFace = VStack(alignment: .center, spacing: 0) {
+                // 1. Top Title Section
+                Text(cardContent.title.uppercased())
+                    .font(NewCardFonts.title) // Font size not scaled for now
+                    .foregroundColor(NewCardColors.titleText)
+                    .padding(.top, 20 * scale)
+                    .padding(.bottom, 10 * scale)
 
-            // MARK: - Description Block
-            Text(cardContent.description)
-                .font(UIConfigLayout.descriptionFont)
-                .foregroundColor(themeManager.currentPalette.descriptionText)
-                .multilineTextAlignment(.center)
-                .padding(UIConfigLayout.descriptionBoxInternalPadding)
-                .frame(maxWidth: .infinity)
-                .background(themeManager.currentPalette.descriptionBoxBackground)
-                .cornerRadius(UIConfigLayout.defaultFrameCornerRadius)
-                .overlay(
-                    RoundedRectangle(cornerRadius: UIConfigLayout.defaultFrameCornerRadius)
-                        .stroke(themeManager.currentPalette.frameOutline, lineWidth: UIConfigLayout.frameOutlineWidth)
-                )
-
-            // MARK: - Stats Block
-            VStack(spacing: UIConfigLayout.statsInternalElementsSpacing) {
-                Text("STATS")
-                    .font(UIConfigLayout.statsHeaderFont)
-                    .foregroundColor(themeManager.currentPalette.statsHeaderText)
-                    .padding(UIConfigLayout.statsHeaderInternalPadding)
-                    .background(themeManager.currentPalette.statsHeaderBackground)
-                    .cornerRadius(UIConfigLayout.statsHeaderCornerRadius)
-
-                LazyVGrid(
-                    columns: [GridItem(.flexible(), spacing: UIConfigLayout.statsGridSpacing),
-                              GridItem(.flexible(), spacing: UIConfigLayout.statsGridSpacing)],
-                    spacing: UIConfigLayout.statsGridSpacing
-                ) {
-                    ForEach(cardContent.stats) { statItem in
-                        IndividualStatView(category: statItem.category, value: statItem.value)
-                    }
-                }
-
-                HStack(spacing: UIConfigLayout.buttonsHStackSpacing) {
-                    Button("Vibe") {
-                        print("Vibe button tapped")
-                    }
-                    .font(UIConfigLayout.actionButtonFont)
-                    .padding(UIConfigLayout.actionButtonPadding)
-                    .foregroundColor(themeManager.currentPalette.buttonText)
-                    .frame(maxWidth: .infinity)
-                    .background(themeManager.currentPalette.buttonBackground)
-                    .cornerRadius(UIConfigLayout.actionButtonCornerRadius)
-                    .overlay(RoundedRectangle(cornerRadius: UIConfigLayout.actionButtonCornerRadius)
-                        .stroke(themeManager.currentPalette.buttonOutline, lineWidth: UIConfigLayout.actionButtonOutlineWidth))
+                // 2. Main Image Section
+                ZStack {
+                    RoundedRectangle(cornerRadius: 12 * scale)
+                        .fill(NewCardColors.imageFrameBackground)
                     
-                    Button("Card Type") {
-                        themeManager.cycleTheme()
-                    }
-                    .font(UIConfigLayout.actionButtonFont)
-                    .padding(UIConfigLayout.actionButtonPadding)
-                    .foregroundColor(themeManager.currentPalette.buttonText)
-                    .frame(maxWidth: .infinity)
-                    .background(themeManager.currentPalette.buttonBackground)
-                    .cornerRadius(UIConfigLayout.actionButtonCornerRadius)
-                    .overlay(RoundedRectangle(cornerRadius: UIConfigLayout.actionButtonCornerRadius)
-                        .stroke(themeManager.currentPalette.buttonOutline, lineWidth: UIConfigLayout.actionButtonOutlineWidth))
+                    RemoteImageView(source: cardContent.localImageName)
+                        .aspectRatio(contentMode: .fill)
+                        .frame(height: 200 * scale)
+                        .clipShape(RoundedRectangle(cornerRadius: 10 * scale))
+                        .padding(4 * scale)
                 }
-                .padding(.top, 5)
+                // Horizontal padding removed, now controlled by cardFrontFace
+                .frame(height: 210 * scale) // Total height for the image section including padding
+                .padding(.bottom, 15 * scale)
+
+                // 3. Info Bar
+                HStack(spacing: 8 * scale) {
+                    InfoTagView(text: "VAL 1", scale: scale)
+                    InfoTagView(text: "VAL 2", scale: scale)
+                    InfoTagView(text: "VAL 3", scale: scale)
+                    InfoTagView(text: "VAL 4", scale: scale)
+                }
+                .padding(.horizontal, 4 * scale)
+                .padding(.vertical, 8 * scale)
+                .background(NewCardColors.infoBarBackground)
+                .cornerRadius(8 * scale)
+                // Horizontal padding removed, now controlled by cardFrontFace
+                .padding(.bottom, 15 * scale)
+
+                // 4. Bottom Section
+                HStack(alignment: .top, spacing: 10 * scale) {
+                    // Left Column
+                    VStack(alignment: .leading, spacing: 4 * scale) {
+                        HStack(alignment: .bottom, spacing: 8 * scale) {
+                            RoundedRectangle(cornerRadius: 6 * scale)
+                                .fill(NewCardColors.fingerprintBackground)
+                                .frame(width: 50 * scale, height: 50 * scale)
+                                .overlay(
+                                    Text("FP")
+                                        .font(.system(size: max(6, 10 * scale))) // Scaled caption, min size 6
+                                        .foregroundColor(.gray)
+                                )
+
+                            VStack(alignment: .leading, spacing: 0) {
+                                Text("005") // Placeholder ID Number
+                                    .font(NewCardFonts.idNumber) // Font size not scaled
+                                    .foregroundColor(NewCardColors.idNumberText)
+                                Text("\"\(cardContent.title.uppercased())_ID\"") // Placeholder ID Name
+                                    .font(NewCardFonts.idName) // Font size not scaled
+                                    .foregroundColor(NewCardColors.idNameText)
+                            }
+                        }
+                        
+                        Spacer() // Pushes disclaimer to bottom of this column if needed
+
+                        Text("UNAUTHORISED COPYING OF CARD IS PROHIBITED")
+                            .font(NewCardFonts.disclaimer) // Font size not scaled
+                            .foregroundColor(NewCardColors.disclaimerText)
+                            .fixedSize(horizontal: false, vertical: true) // Allow text to wrap
+                            .padding(.top, 5 * scale)
+                    }
+                    .frame(minHeight: 80 * scale) // Proportional min height
+
+                    // Right Column (QR Code and Vertical Text)
+                    HStack(spacing: 5 * scale) {
+                        Text("SCOAN TO") // "SCAN TO"
+                            .font(NewCardFonts.scanTo) // Font size not scaled
+                            .foregroundColor(NewCardColors.scanToText)
+                            .rotationEffect(.degrees(-90))
+                            .fixedSize() // Prevent text from taking too much space before rotation
+                            .frame(width: 15 * scale, height: 60 * scale) // Scaled frame for rotated text
+
+                        RoundedRectangle(cornerRadius: 4 * scale)
+                            .fill(NewCardColors.qrCodePlaceholder)
+                            .frame(width: 60 * scale, height: 60 * scale)
+                            .overlay(
+                                Image(systemName: "qrcode") // System icon as placeholder
+                                    .resizable()
+                                    .scaledToFit()
+                                    .padding(5 * scale) // Padding for the icon inside placeholder
+                                    .foregroundColor(.white)
+                            )
+                    }
+                }
+                // Horizontal padding removed, now controlled by cardFrontFace
+                .padding(.bottom, 20 * scale)
+                
+                Spacer() // Pushes all content to the top if card is taller
             }
-            .padding(UIConfigLayout.statsContainerInternalPadding)
-            .frame(maxWidth: .infinity)
-            .background(themeManager.currentPalette.statsContainerBackground)
-            .cornerRadius(UIConfigLayout.defaultFrameCornerRadius)
+            .padding(EdgeInsets(top: 20 * scale, leading: 15 * scale, bottom: 20 * scale, trailing: 15 * scale)) // Apply consistent padding to cardFrontFace
+            .frame(maxWidth: .infinity, maxHeight: .infinity) // cardFrontFace fills its parent (cardStructure)
+
+            // Card structure for flipping
+            let cardStructure = ZStack {
+                cardFrontFace
+                    .opacity(isFlipped ? 0 : 1)
+
+                CardBackView() // Assuming CardBackView also adapts or is fine with new size
+                    .opacity(isFlipped ? 1 : 0)
+                    .rotation3DEffect(.degrees(180), axis: (x: 0, y: 1, z: 0)) // Pre-rotate back view
+            }
+            .frame(width: cardWidth, height: cardHeight)
+            .background(NewCardColors.cardBackground) // Apply background to the sized ZStack
+            .cornerRadius(UIConfigLayout.defaultFrameCornerRadius * 1.5) // Then apply corner radius
             .overlay(
-                RoundedRectangle(cornerRadius: UIConfigLayout.defaultFrameCornerRadius)
-                    .stroke(themeManager.currentPalette.frameOutline, lineWidth: UIConfigLayout.frameOutlineWidth)
+                RoundedRectangle(cornerRadius: UIConfigLayout.defaultFrameCornerRadius * 1.5)
+                    .stroke(NewCardColors.frameBorder.opacity(0.5), lineWidth: max(1, 1 * scale)) // Use theme's frame outline, scaled
             )
-        }
-        .padding(.horizontal, UIConfigLayout.contentHorizontalPadding)
-        .padding(.vertical, UIConfigLayout.contentVerticalPadding)
-        // cardFrontFace itself should not have a separate outer background or border;
-        // these are handled by the cardStructure ZStack.
-
-        // Card structure for flipping
-        let cardStructure = ZStack {
-            cardFrontFace
-                .opacity(isFlipped ? 0 : 1)
-
-            CardBackView()
-                .opacity(isFlipped ? 1 : 0)
-                .rotation3DEffect(.degrees(180), axis: (x: 0, y: 1, z: 0)) // Pre-rotate back view
-        }
-        .cornerRadius(UIConfigLayout.defaultFrameCornerRadius * 1.5) // Outer card corner radius
-        .overlay(
-            RoundedRectangle(cornerRadius: UIConfigLayout.defaultFrameCornerRadius * 1.5)
-                .stroke(themeManager.currentPalette.frameOutline, lineWidth: UIConfigLayout.frameOutlineWidth * 1.2) // Use theme's frame outline
-        )
-        .shadow(color: .black.opacity(0.3), radius: 8, x: 0, y: 4) // Slightly softer shadow for the whole card
+            .shadow(color: .black.opacity(0.2), radius: max(2, 5 * scale), x: 0, y: max(1, 3 * scale)) // Slightly softer shadow for the whole card, scaled
 
 
-        ZStack {
-            themeManager.currentPalette.screenBackground
-                .ignoresSafeArea()
-            
-            VStack {
-                Spacer()
-                cardStructure
-                    .rotation3DEffect(
-                        .degrees(currentYRotationAmount + accumulatedYRotationAmount + (isFlipped ? 180 : 0)),
-                        axis: (x: 0, y: 1, z: 0), // Yaw (around Y-axis)
-                        perspective: 0.3
-                    )
-                    .gesture(
-                        DragGesture(minimumDistance: 0)
-                            .onChanged { value in
-                                // Only allow horizontal drag to rotate around Y-axis
-                                self.currentYRotationAmount = Double(value.translation.width) * 0.5
-                            }
-                            .onEnded { value in
-                                self.accumulatedYRotationAmount += self.currentYRotationAmount
-                                self.currentYRotationAmount = 0
-                                // Keep accumulatedYRotationAmount within -360 to 360 to prevent excessive spinning
-                                self.accumulatedYRotationAmount = self.accumulatedYRotationAmount.truncatingRemainder(dividingBy: 360)
-                            }
-                    )
-                Spacer()
-                Button(action: {
-                    withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
-                        isFlipped.toggle()
-                        // Reset drag rotation when flipping with button for a cleaner flip
-                        accumulatedYRotationAmount = 0
-                        currentYRotationAmount = 0
+            // This ZStack is for the overall screen layout, placing cardStructure and button
+            ZStack {
+                Color.gray.opacity(0.3) // Example: A neutral darkish background
+                    .ignoresSafeArea()
+                
+                VStack {
+                    Spacer()
+                    cardStructure // This is the dynamically sized, backgrounded, and styled card
+                        .rotation3DEffect(
+                            .degrees(currentYRotationAmount + accumulatedYRotationAmount + (isFlipped ? 180 : 0)),
+                            axis: (x: 0, y: 1, z: 0), // Yaw (around Y-axis)
+                            perspective: 0.3
+                        )
+                        .gesture(
+                            DragGesture(minimumDistance: 0)
+                                .onChanged { value in
+                                    // Only allow horizontal drag to rotate around Y-axis
+                                    self.currentYRotationAmount = Double(value.translation.width) * 0.5
+                                }
+                                .onEnded { value in
+                                    self.accumulatedYRotationAmount += self.currentYRotationAmount
+                                    self.currentYRotationAmount = 0
+                                    // Keep accumulatedYRotationAmount within -360 to 360 to prevent excessive spinning
+                                    self.accumulatedYRotationAmount = self.accumulatedYRotationAmount.truncatingRemainder(dividingBy: 360)
+                                }
+                        )
+                    Spacer()
+                    Button(action: {
+                        withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                            isFlipped.toggle()
+                            // Reset drag rotation when flipping with button for a cleaner flip
+                            accumulatedYRotationAmount = 0
+                            currentYRotationAmount = 0
+                        }
+                    }) {
+                        Image(systemName: "arrow.left.arrow.right.circle.fill")
+                            .font(.largeTitle) // Consider scaling font or using relative size
+                            .padding() // Consider scaling padding
+                            .foregroundColor(themeManager.currentPalette.buttonText)
+                            .background(themeManager.currentPalette.buttonBackground.opacity(0.8))
+                            .clipShape(Circle())
+                            .shadow(radius: max(2,5 * scale)) // Consider scaling shadow
                     }
-                }) {
-                    Image(systemName: "arrow.left.arrow.right.circle.fill")
-                        .font(.largeTitle)
-                        .padding()
-                        .foregroundColor(themeManager.currentPalette.buttonText)
-                        .background(themeManager.currentPalette.buttonBackground.opacity(0.8))
-                        .clipShape(Circle())
-                        .shadow(radius: 5)
+                    .padding(.bottom, geometry.size.height * 0.05) // Scaled bottom padding for button
                 }
-                .padding(.bottom, 30)
             }
+            // The ZStack above will fill the GeometryReader by default
         }
         .environmentObject(themeManager)
     }
