@@ -34,6 +34,7 @@ struct CardView: View {
         static let fingerprintBackground = Color(red: 0.8, green: 0.85, blue: 0.86)
         static let qrCodePlaceholder = Color.gray
         static let scanToText = Color(red: 0.2, green: 0.2, blue: 0.2)
+        static let innerFrameLine: Color = Color.gray.opacity(0.5) // For the new inner frame line
     }
 
     // Fonts based on the new design (can be moved to UIConfigLayout or defined better)
@@ -78,6 +79,11 @@ struct CardView: View {
             let cardHeight = cardWidth * cardAspectRatio
             let scale = cardWidth / baseCardWidth
 
+            // Inner frame line properties
+            let innerFramePadding = 5 * scale // Padding from the card edge to the frame line
+            let innerFrameLineWidth = 1 * scale // Thickness of the frame line
+            let qrCodeSectionSize = 75 * scale // New size for QR code section (width & height)
+
             // NEW Card Front Face Design
             let cardFrontFace = VStack(alignment: .center, spacing: 0) {
                 // 1. Top Title Section
@@ -109,6 +115,7 @@ struct CardView: View {
                     InfoTagView(text: "VAL 3", scale: scale)
                     InfoTagView(text: "VAL 4", scale: scale)
                 }
+                .frame(maxWidth: .infinity)
                 .padding(.horizontal, 4 * scale)
                 .padding(.vertical, 8 * scale)
                 .background(NewCardColors.infoBarBackground)
@@ -117,8 +124,8 @@ struct CardView: View {
                 .padding(.bottom, 15 * scale)
 
                 // 4. Bottom Section
-                HStack(alignment: .top, spacing: 10 * scale) {
-                    // Left Column
+                HStack(alignment: .center, spacing: 10 * scale) { // Align items center vertically
+                    // Left Column (New Container for FP, ID, Name)
                     VStack(alignment: .leading, spacing: 4 * scale) {
                         HStack(alignment: .bottom, spacing: 8 * scale) {
                             RoundedRectangle(cornerRadius: 6 * scale)
@@ -126,52 +133,47 @@ struct CardView: View {
                                 .frame(width: 50 * scale, height: 50 * scale)
                                 .overlay(
                                     Text("FP")
-                                        .font(.system(size: max(6, 10 * scale))) // Scaled caption, min size 6
+                                        .font(.system(size: max(6, 10 * scale)))
                                         .foregroundColor(.gray)
                                 )
-
                             VStack(alignment: .leading, spacing: 0) {
                                 Text("005") // Placeholder ID Number
-                                    .font(NewCardFonts.idNumber) // Font size not scaled
+                                    .font(NewCardFonts.idNumber)
                                     .foregroundColor(NewCardColors.idNumberText)
                                 Text("\"\(cardContent.title.uppercased())_ID\"") // Placeholder ID Name
-                                    .font(NewCardFonts.idName) // Font size not scaled
+                                    .font(NewCardFonts.idName)
                                     .foregroundColor(NewCardColors.idNameText)
                             }
                         }
-                        
-                        Spacer() // Pushes disclaimer to bottom of this column if needed
-
-                        Text("UNAUTHORISED COPYING OF CARD IS PROHIBITED")
-                            .font(NewCardFonts.disclaimer) // Font size not scaled
-                            .foregroundColor(NewCardColors.disclaimerText)
-                            .fixedSize(horizontal: false, vertical: true) // Allow text to wrap
-                            .padding(.top, 5 * scale)
+                        // Disclaimer and Spacer removed
                     }
-                    .frame(minHeight: 80 * scale) // Proportional min height
+                    .padding(10 * scale) // Internal padding for the new container
+                    .frame(maxWidth: .infinity, idealHeight: qrCodeSectionSize, maxHeight: qrCodeSectionSize) // Span width, match QR height
+                    .background(NewCardColors.imageFrameBackground) // Light background for the container
+                    .cornerRadius(8 * scale)
 
                     // Right Column (QR Code and Vertical Text)
                     HStack(spacing: 5 * scale) {
-                        Text("SCOAN TO") // "SCAN TO"
-                            .font(NewCardFonts.scanTo) // Font size not scaled
+                        Text("SCOAN TO")
+                            .font(NewCardFonts.scanTo)
                             .foregroundColor(NewCardColors.scanToText)
                             .rotationEffect(.degrees(-90))
-                            .fixedSize() // Prevent text from taking too much space before rotation
-                            .frame(width: 15 * scale, height: 60 * scale) // Scaled frame for rotated text
+                            .fixedSize()
+                            .frame(width: 20 * scale, height: qrCodeSectionSize) // Adjusted width, match QR height
 
                         RoundedRectangle(cornerRadius: 4 * scale)
                             .fill(NewCardColors.qrCodePlaceholder)
-                            .frame(width: 60 * scale, height: 60 * scale)
+                            .frame(width: qrCodeSectionSize, height: qrCodeSectionSize) // Use new QR code size
                             .overlay(
-                                Image(systemName: "qrcode") // System icon as placeholder
+                                Image(systemName: "qrcode")
                                     .resizable()
                                     .scaledToFit()
-                                    .padding(5 * scale) // Padding for the icon inside placeholder
+                                    .padding(8 * scale) // Slightly more padding for larger QR
                                     .foregroundColor(.white)
                             )
                     }
+                    .frame(height: qrCodeSectionSize) // Ensure this HStack also respects the height
                 }
-                // Horizontal padding removed, now controlled by cardFrontFace
                 .padding(.bottom, 20 * scale)
                 
                 Spacer() // Pushes all content to the top if card is taller
@@ -193,9 +195,10 @@ struct CardView: View {
             .cornerRadius(UIConfigLayout.defaultFrameCornerRadius * 1.5) // Then apply corner radius
             .overlay(
                 RoundedRectangle(cornerRadius: UIConfigLayout.defaultFrameCornerRadius * 1.5)
-                    .stroke(NewCardColors.frameBorder.opacity(0.5), lineWidth: max(1, 1 * scale)) // Use theme's frame outline, scaled
+                    .strokeBorder(NewCardColors.innerFrameLine, lineWidth: innerFrameLineWidth)
+                    .padding(innerFramePadding)
             )
-            .shadow(color: .black.opacity(0.2), radius: max(2, 5 * scale), x: 0, y: max(1, 3 * scale)) // Slightly softer shadow for the whole card, scaled
+            .shadow(color: Color.black.opacity(0.15), radius: 8, x: 0, y: 4)
 
 
             // This ZStack is for the overall screen layout, placing cardStructure and button
