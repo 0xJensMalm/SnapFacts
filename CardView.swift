@@ -181,17 +181,21 @@ struct CardView: View {
             .frame(width: cardWidth, height: cardHeight)
             .background(themeManager.currentTheme.cardBackground) // Apply background to the sized ZStack
             .cornerRadius(UIConfigLayout.defaultFrameCornerRadius * 1.5) // Then apply corner radius
-            .overlay(
+            .overlay( // Static white outline on the card's edge
+                RoundedRectangle(cornerRadius: UIConfigLayout.defaultFrameCornerRadius * 1.5)
+                    .strokeBorder(Color.white, lineWidth: 1.5 * scale) // White outline, slightly thicker
+            )
+            .overlay( // Themed inner frame line, inset from the white outline
                 RoundedRectangle(cornerRadius: UIConfigLayout.defaultFrameCornerRadius * 1.5)
                     .strokeBorder(themeManager.currentTheme.innerFrameLine, lineWidth: innerFrameLineWidth)
-                    .padding(innerFramePadding)
+                    .padding(innerFramePadding) // This padding ensures it's inside the white outline
             )
             .shadow(color: Color.black.opacity(0.15), radius: 8, x: 0, y: 4)
 
 
             // This ZStack is for the overall screen layout, placing cardStructure and button
             ZStack {
-                Color.gray.opacity(0.3) // Example: A neutral darkish background
+                Color.black // Set background to black as requested
                     .ignoresSafeArea()
                 
                 VStack {

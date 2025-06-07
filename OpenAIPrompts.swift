@@ -21,7 +21,7 @@ final class OpenAIPrompts {
         .init(
             title: "Card Art • V3", // Updated version
             body: """
-            Make an old school type illustration that fits a trading card game, think magic the gathering.   [SUBJECT_DESCRIPTION]. Subject: centered, easily recognizable, Style: consistent trading card game art.The focus should be entirely on the subject with minimal background scenery.
+            Make an old school type illustration that fits a trading card game, think magic the gathering.  [SUBJECT_DESCRIPTION]. Subject: centered, easily recognizable. Clean background, no distractions. Style: old school consistent trading card game art like magic the gathering or dune, it should look like the illustration used traditional mediums like oil or watercolor. Avoid strong colors. .The focus should be entirely on the subject with minimal background scenery.
             """
         ),
         // You can add more image style prompts here
@@ -42,7 +42,7 @@ final class OpenAIPrompts {
             Return a minified JSON object with exactly four keys: "title", "description", "stats", and "detailedSubjectDescription".
 
             {
-              "title": "<Find a fitting title with max 8 characters that will in capital letters on top of the card. '>",
+              "title": "<Find a fitting title with max 10 characters that will in capital letters on top of the card. The word must be complete, be creative if the word doesnt exactly match the subject.'>",
               "description": "<An interesting fact about the object for the card's text, max two sentences. e.g., 'The Vans company was founded by the same person as... Or: This tree first saw light the same year as... or [plant] is used for medical purposes like. Going technical is fine!'>",
               "stats": [
                 { "category": "<attr1 name>", "value": "<value1>" },
