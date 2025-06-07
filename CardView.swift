@@ -106,10 +106,9 @@ struct CardView: View {
 
                 // 3. Info Bar - Redesigned with StatLabelView
                 HStack(spacing: 5 * scale) { // Spacing between StatLabelViews
-                    StatLabelView(category: "TYPE", value: "Vintage", theme: themeManager.currentTheme, scale: scale)
-                    StatLabelView(category: "ERA", value: "90s", theme: themeManager.currentTheme, scale: scale)
-                    StatLabelView(category: "COLOR", value: "Red", theme: themeManager.currentTheme, scale: scale)
-                    StatLabelView(category: "STYLE", value: "Retro", theme: themeManager.currentTheme, scale: scale)
+                    ForEach(cardContent.stats) { statItem in
+                        StatLabelView(category: statItem.category, value: statItem.value.displayString, theme: themeManager.currentTheme, scale: scale)
+                    }
                 }
                 .padding(.horizontal, 10 * scale) // Overall horizontal padding for the info bar content
                 .padding(.vertical, 6 * scale)   // Vertical padding around the StatLabelViews, inside the info bar background

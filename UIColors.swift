@@ -72,30 +72,7 @@ struct CardTheme: Identifiable {
 
 struct CardThemes {
 
-    static let themeOne = CardTheme(
-        name: "Sunset Glow",
-        cardBackground: Color(hex: "#E67E22"), // Deep Orange
-        innerFrameLine: Color(hex: "#F1C40F").opacity(0.9), // Light Yellow/Gold
-        titleText: Color(hex: "#4A2B0F"), // Dark Brown
-        imageFrameBackground: Color(hex: "#FAD7A0"), // Light Orange/Peach
-        infoBarBackground: Color(hex: "#C0392B"), // Rich Red
-        tagBackground: Color(hex: "#F1C40F"), // Yellow
-        tagText: Color(hex: "#4A2B0F"), // Dark Brown
-        bottomContainerBackground: Color(hex: "#FAD7A0"), // Light Orange/Peach
-        fingerprintBackground: Color(hex: "#D35400"), // Medium Orange
-        fingerprintSymbol: Color(hex: "#4A2B0F"), // Dark Brown
-        idNumberText: Color(hex: "#4A2B0F"), // Dark Brown
-        idNameText: Color(hex: "#784212"), // Medium Brown
-        scanToText: Color(hex: "D2691E"), // Burnt Orange
-        qrCodePlaceholderBackground: Color(hex: "FFE5B4"), // Light Orange (Peach)
-        qrCodeIcon: Color(hex: "D2691E"), // Burnt Orange
-        infoLabelCategoryBackground: Color(hex: "C84B31"), // Dark Orange
-        infoLabelValueBackground: Color(hex: "FFA500")    // Orange (Corrected comment)
-    )
-
-    
-
-    static let themeTwo = CardTheme( // Was themeSix, renamed to themeOne
+static let themeOne = CardTheme( // Was themeSix, renamed to themeOne
         name: "Vintage Paper",
         cardBackground: Color(hex: "#F1E1BE"),      // Creamy Beige
         innerFrameLine: Color(hex: "#BE5A46"),      // Terracotta Red
@@ -114,6 +91,26 @@ struct CardThemes {
         qrCodeIcon: Color(hex: "#232334"),           // Dark Slate Gray
         infoLabelCategoryBackground: Color(hex: "#232334"), // Dark Slate Gray
         infoLabelValueBackground: Color(hex: "#A04B3A")    // Darker Terracotta
+    )
+    static let themeTwo = CardTheme(
+        name: "Sunset Glow",
+        cardBackground: Color(hex: "#E67E22"), // Deep Orange
+        innerFrameLine: Color(hex: "#F1C40F").opacity(0.9), // Light Yellow/Gold
+        titleText: Color(hex: "#4A2B0F"), // Dark Brown
+        imageFrameBackground: Color(hex: "#FAD7A0"), // Light Orange/Peach
+        infoBarBackground: Color(hex: "#C0392B"), // Rich Red
+        tagBackground: Color(hex: "#F1C40F"), // Yellow
+        tagText: Color(hex: "#4A2B0F"), // Dark Brown
+        bottomContainerBackground: Color(hex: "#FAD7A0"), // Light Orange/Peach
+        fingerprintBackground: Color(hex: "#D35400"), // Medium Orange
+        fingerprintSymbol: Color(hex: "#4A2B0F"), // Dark Brown
+        idNumberText: Color(hex: "#4A2B0F"), // Dark Brown
+        idNameText: Color(hex: "#784212"), // Medium Brown
+        scanToText: Color(hex: "D2691E"), // Burnt Orange
+        qrCodePlaceholderBackground: Color(hex: "FFE5B4"), // Light Orange (Peach)
+        qrCodeIcon: Color(hex: "D2691E"), // Burnt Orange
+        infoLabelCategoryBackground: Color(hex: "C84B31"), // Dark Orange
+        infoLabelValueBackground: Color(hex: "FFA500")    // Orange (Corrected comment)
     )
 
     static let themeThree = CardTheme( // Was themeSeven, renamed to themeTwo

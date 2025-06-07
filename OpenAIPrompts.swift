@@ -23,15 +23,8 @@ final class OpenAIPrompts {
             body: """
             Make an old school type illustration that fits a trading card game, think magic the gathering.  [SUBJECT_DESCRIPTION]. Subject: centered, easily recognizable. Clean background, no distractions. Style: old school consistent trading card game art like magic the gathering or dune, it should look like the illustration used traditional mediums like oil or watercolor. Avoid strong colors. .The focus should be entirely on the subject with minimal background scenery.
             """
-        ),
-        // You can add more image style prompts here
-       /* .init(
-            title: "Photorealistic Card Art",
-            body: """
-            A photorealistic image of [SUBJECT_DESCRIPTION], suitable for a collectible card.
-            Focus on high detail and realistic textures. The background should be simple or a subtle gradient.
-            """
-        )*/
+        )
+        // You can add more image style prompts here if needed
     ]
 
     private(set) var textPrompts: [OpenAIPrompt] = [
