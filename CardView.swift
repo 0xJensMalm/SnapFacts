@@ -19,8 +19,6 @@ struct CardView: View {
     @State private var isFlipped: Bool = false
 
 
-    // NewCardColors struct removed, colors now managed by ThemeManager and CardTheme in UIColors.swift
-
     // Fonts based on the new design (can be moved to UIConfigLayout or defined better)
     struct NewCardFonts {
         static let title = Font.system(size: 48, weight: .bold, design: .default)
@@ -116,7 +114,8 @@ struct CardView: View {
                 .padding(.horizontal, 10 * scale) // Overall horizontal padding for the info bar content
                 .padding(.vertical, 6 * scale)   // Vertical padding around the StatLabelViews, inside the info bar background
                 .background(themeManager.currentTheme.infoBarBackground) // Background for the entire info bar area
-                .clipShape(RoundedRectangle(cornerRadius: 12 * scale)) // Clip the info bar background
+                .clipShape(RoundedRectangle(cornerRadius: 12 * scale))
+                .padding(.bottom, 20 * scale) // Increased padding between Info Bar and Bottom Section
 
                 // 4. Bottom Section
                 HStack(alignment: .center, spacing: 10 * scale) { // Align items center vertically
@@ -244,53 +243,6 @@ struct CardView: View {
         .environmentObject(themeManager)
     }
 }
-
-// Ensure SampleCardData and other model definitions are available.
-// For example, in Models.swift or a dedicated CardDataModels.swift:
-/*
- enum StatValue: Decodable, Hashable {
-    case int(Int)
-    case string(String)
-    // Add other cases as needed, e.g., double(Double)
-
-    var displayString: String {
-        switch self {
-        case .int(let val): return "\(val)"
-        case .string(let val): return val
-        }
-    }
-    // If you need custom Decodable conformance:
-    // init(from decoder: Decoder) throws { ... }
-}
-
-struct CardStatItem: Identifiable, Decodable, Hashable {
-    let id = UUID()
-    var category: String
-    var value: StatValue
-    // Make sure CodingKeys match your JSON if it's different
-}
-
-struct CardContent: Identifiable, Decodable {
-    let id: String
-    var title: String
-    var description: String
-    var localImageName: String // Could be a URL string or local asset name
-    var stats: [CardStatItem]
-}
-
-struct SampleCardData {
-    static let vansOldSkool = CardContent(
-        id: "1",
-        title: "Vans Old Skool",
-        description: "Classic skate shoe with iconic side stripe. Durable canvas and suede upper.",
-        localImageName: "https://images.vans.com/is/image/Vans/VN000D3HY28-HERO?$583x583$", // Example remote URL
-        stats: [
-            CardStatItem(category: "Price", value: .string("$65"))
-            // ... more stats ...
-        ]
-    )
-}
-*/
 
 struct IndividualStatView: View {
     @EnvironmentObject var themeManager: ThemeManager // Access current theme

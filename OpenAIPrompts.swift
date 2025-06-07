@@ -42,7 +42,7 @@ final class OpenAIPrompts {
             Return a minified JSON object with exactly four keys: "title", "description", "stats", and "detailedSubjectDescription".
 
             {
-              "title": "<Find a fitting title with max 10 characters that will in capital letters on top of the card. The word must be complete, be creative if the word doesnt exactly match the subject.'>",
+              "title": "<Find a fitting title, it can be one or two words. Not too long. The title should have a layer of wisdom to it without being cheesy, and fit a trading card, for example "Eagle Eye", "Iron Will", "Flamebound", "Chrono Hunter" - it should fit the subject though.'>",
               "description": "<An interesting fact about the object for the card's text, max two sentences. e.g., 'The Vans company was founded by the same person as... Or: This tree first saw light the same year as... or [plant] is used for medical purposes like. Going technical is fine!'>",
               "stats": [
                 { "category": "<attr1 name>", "value": "<value1>" },

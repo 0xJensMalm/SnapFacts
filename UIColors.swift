@@ -71,28 +71,8 @@ struct CardTheme: Identifiable {
 }
 
 struct CardThemes {
-    static let themeOne = CardTheme(
-        name: "Midnight Bloom",
-        cardBackground: Color(hex: "#1A0F2A"), // Very Dark Purple/Blue
-        innerFrameLine: Color(hex: "#B08D57").opacity(0.8), // Muted Gold/Bronze
-        titleText: Color(hex: "#F0E6D2"), // Off-White/Light Gold
-        imageFrameBackground: Color(hex: "#3D2C5C"), // Dark Grayish Purple
-        infoBarBackground: Color(hex: "#4A3769"), // Deep Purple
-        tagBackground: Color(hex: "#B08D57"), // Muted Gold/Bronze
-        tagText: Color(hex: "#1A0F2A"), // Dark background for contrast on gold
-        bottomContainerBackground: Color(hex: "#3D2C5C"), // Dark Grayish Purple
-        fingerprintBackground: Color(hex: "#5C4B7E"), // Slightly Lighter Dark Purple
-        fingerprintSymbol: Color(hex: "#F0E6D2"), // Off-White/Light Gold
-        idNumberText: Color(hex: "#F0E6D2"), // Off-White/Light Gold
-        idNameText: Color(hex: "#A094B7"), // Light Grayish Purple
-        scanToText: Color(hex: "#B08D57"), // Muted Gold/Bronze
-        qrCodePlaceholderBackground: Color(hex: "#BDC3C7"), // Medium Gray (Corrected)
-        qrCodeIcon: Color(hex: "#F7DC6F"), // Electric Yellow (Corrected)
-        infoLabelCategoryBackground: Color(hex: "#4A0060"), // Dark Purple
-        infoLabelValueBackground: Color(hex: "#B08D57")    // Gold
-    )
 
-    static let themeTwo = CardTheme(
+    static let themeOne = CardTheme(
         name: "Sunset Glow",
         cardBackground: Color(hex: "#E67E22"), // Deep Orange
         innerFrameLine: Color(hex: "#F1C40F").opacity(0.9), // Light Yellow/Gold
@@ -113,71 +93,72 @@ struct CardThemes {
         infoLabelValueBackground: Color(hex: "FFA500")    // Orange (Corrected comment)
     )
 
-    static let themeThree = CardTheme(
-        name: "Forest Canopy",
-        cardBackground: Color(hex: "#224F36"), // Deep Forest Green
-        innerFrameLine: Color(hex: "#D4C1A9").opacity(0.8), // Light Beige/Tan
-        titleText: Color(hex: "#F5F5DC"), // Cream/Off-White
-        imageFrameBackground: Color(hex: "#556B2F"), // Medium Olive Green
-        infoBarBackground: Color(hex: "#5D4037"), // Dark Brown
-        tagBackground: Color(hex: "#D4C1A9"), // Light Beige/Tan
-        tagText: Color(hex: "#3E2723"), // Darker Brown for contrast
-        bottomContainerBackground: Color(hex: "#556B2F"), // Medium Olive Green
-        fingerprintBackground: Color(hex: "#6B8E23"), // Lighter Olive Green
-        fingerprintSymbol: Color(hex: "#F5F5DC"), // Cream/Off-White
-        idNumberText: Color(hex: "#F5F5DC"), // Cream/Off-White
-        idNameText: Color(hex: "#A1887F"), // Light Brownish Gray
-        scanToText: Color(hex: "A47C48"), // Light Brown (Original)
-        qrCodePlaceholderBackground: Color(hex: "D2B48C"), // Tan (Original)
-        qrCodeIcon: Color(hex: "556B2F"), // Dark Olive Green (Original)
-        infoLabelCategoryBackground: Color(hex: "2E4030"), // Dark Green (Corrected for Forest Canopy)
-        infoLabelValueBackground: Color(hex: "A47C48")    // Brown (Corrected for Forest Canopy)
-    )
-
-    static let themeFour = CardTheme(
-        name: "Arctic Frost",
-        cardBackground: Color(hex: "#EAF2F8"), // Very Light Blue/Almost White
-        innerFrameLine: Color(hex: "#A6ACAF").opacity(0.7), // Medium Silver/Gray
-        titleText: Color(hex: "#2C3E50"), // Dark Charcoal Gray
-        imageFrameBackground: Color(hex: "#D5D8DC"), // Light Silver/Gray
-        infoBarBackground: Color(hex: "#85929E"), // Cool Blue-Gray
-        tagBackground: Color(hex: "#AED6F1"), // Icy Blue
-        tagText: Color(hex: "#212F3C"), // Darker Blue-Gray for contrast
-        bottomContainerBackground: Color(hex: "#D5D8DC"), // Light Silver/Gray
-        fingerprintBackground: Color(hex: "#B2BABB"), // Medium Silver/Gray
-        fingerprintSymbol: Color(hex: "#2C3E50"), // Dark Charcoal Gray
-        idNumberText: Color(hex: "#2C3E50"), // Dark Charcoal Gray
-        idNameText: Color(hex: "#566573"), // Medium Gray
-        scanToText: Color(hex: "B0C4DE"), // Light Steel Blue (Original)
-        qrCodePlaceholderBackground: Color(hex: "B0C4DE"), // Light Steel Blue (Original)
-        qrCodeIcon: Color(hex: "4682B4"), // Steel Blue (Original)
-        infoLabelCategoryBackground: Color(hex: "3A506B"), // Dark Blue (Corrected for Arctic Frost)
-        infoLabelValueBackground: Color(hex: "9DB4C0")    // Light Gray-Blue (Corrected for Arctic Frost)
-    )
-
-    static let themeFive = CardTheme(
-        name: "Retro Pop",
-        cardBackground: Color(hex: "#1ABC9C"), // Bright Teal
-        innerFrameLine: Color(hex: "#E91E63").opacity(0.9), // Hot Pink
-        titleText: Color(hex: "#F7DC6F"), // Electric Yellow
-        imageFrameBackground: Color(hex: "#ECF0F1"), // Light Gray
-        infoBarBackground: Color(hex: "#8E44AD"), // Dark Purple
-        tagBackground: Color(hex: "#E91E63"), // Hot Pink
-        tagText: Color(hex: "#F7DC6F"), // Electric Yellow
-        bottomContainerBackground: Color(hex: "#ECF0F1"), // Light Gray
-        fingerprintBackground: Color(hex: "#BDC3C7"), // Medium Gray
-        fingerprintSymbol: Color(hex: "#F7DC6F"), // Electric Yellow
-        idNumberText: Color(hex: "#F7DC6F"), // Electric Yellow
-        idNameText: Color(hex: "#FFFFFF"), // White
-        scanToText: Color(hex: "#E91E63"), // Hot Pink
-        qrCodePlaceholderBackground: Color(hex: "#F0E68C"), // Khaki (Original)
-        qrCodeIcon: Color(hex: "#333333"), // Dark Gray (Added missing)
-        infoLabelCategoryBackground: Color(hex: "#00796B"), // Dark Teal
-        infoLabelValueBackground: Color(hex: "#E91E63")    // Pink
-    )
-
     
-    static let availableCardThemes: [CardTheme] = [themeOne, themeTwo, themeThree, themeFour, themeFive]
+
+    static let themeTwo = CardTheme( // Was themeSix, renamed to themeOne
+        name: "Vintage Paper",
+        cardBackground: Color(hex: "#F1E1BE"),      // Creamy Beige
+        innerFrameLine: Color(hex: "#BE5A46"),      // Terracotta Red
+        titleText: Color(hex: "#232334"),           // Dark Slate Gray
+        imageFrameBackground: Color(hex: "#BE5A46"), // Terracotta Red
+        infoBarBackground: Color(hex: "#BE5A46"),    // Terracotta Red
+        tagBackground: Color(hex: "#232334"),       // Dark Slate Gray
+        tagText: Color(hex: "#F1E1BE"),           // Creamy Beige
+        bottomContainerBackground: Color(hex: "#BE5A46"), // Terracotta Red
+        fingerprintBackground: Color(hex: "#D3A993"), // Lighter Terracotta
+        fingerprintSymbol: Color(hex: "#232334"),   // Dark Slate Gray
+        idNumberText: Color(hex: "#232334"),       // Dark Slate Gray
+        idNameText: Color(hex: "#232334"),         // Dark Slate Gray
+        scanToText: Color(hex: "#232334"),         // Dark Slate Gray
+        qrCodePlaceholderBackground: Color(hex: "#D3C5A9"), // Muted Beige
+        qrCodeIcon: Color(hex: "#232334"),           // Dark Slate Gray
+        infoLabelCategoryBackground: Color(hex: "#232334"), // Dark Slate Gray
+        infoLabelValueBackground: Color(hex: "#A04B3A")    // Darker Terracotta
+    )
+
+    static let themeThree = CardTheme( // Was themeSeven, renamed to themeTwo
+        name: "Oceanic Deep",
+        cardBackground: Color(hex: "#0A1931"),      // Very Dark Blue
+        innerFrameLine: Color(hex: "#185ADB"),      // Bright Royal Blue
+        titleText: Color(hex: "#E8F0F2"),           // Off-White/Light Cyan
+        imageFrameBackground: Color(hex: "#1D2D50"), // Dark Slate Blue
+        infoBarBackground: Color(hex: "#185ADB"),    // Bright Royal Blue
+        tagBackground: Color(hex: "#E8F0F2"),       // Off-White/Light Cyan
+        tagText: Color(hex: "#0A1931"),           // Very Dark Blue
+        bottomContainerBackground: Color(hex: "#1D2D50"), // Dark Slate Blue
+        fingerprintBackground: Color(hex: "#274A78"), // Medium Dark Blue
+        fingerprintSymbol: Color(hex: "#E8F0F2"),   // Off-White/Light Cyan
+        idNumberText: Color(hex: "#E8F0F2"),       // Off-White/Light Cyan
+        idNameText: Color(hex: "#A2BBDD"),         // Light Steel Blue
+        scanToText: Color(hex: "#E8F0F2"),         // Off-White/Light Cyan
+        qrCodePlaceholderBackground: Color(hex: "#1D2D50"), // Dark Slate Blue
+        qrCodeIcon: Color(hex: "#E8F0F2"),           // Off-White/Light Cyan
+        infoLabelCategoryBackground: Color(hex: "#E8F0F2"), // Off-White/Light Cyan
+        infoLabelValueBackground: Color(hex: "#185ADB")    // Bright Royal Blue
+    )
+
+    static let themeFour = CardTheme( // Was themeEight, renamed to themeThree
+        name: "Emerald Isle",
+        cardBackground: Color(hex: "#104F55"),      // Dark Teal Green
+        innerFrameLine: Color(hex: "#58B09C"),      // Sea Green
+        titleText: Color(hex: "#F7F7F7"),           // Very Light Gray/Almost White
+        imageFrameBackground: Color(hex: "#1A5E63"), // Medium Teal Green
+        infoBarBackground: Color(hex: "#58B09C"),    // Sea Green
+        tagBackground: Color(hex: "#F7F7F7"),       // Very Light Gray
+        tagText: Color(hex: "#104F55"),           // Dark Teal Green
+        bottomContainerBackground: Color(hex: "#1A5E63"), // Medium Teal Green
+        fingerprintBackground: Color(hex: "#2C7873"), // Slightly Lighter Teal
+        fingerprintSymbol: Color(hex: "#F7F7F7"),   // Very Light Gray
+        idNumberText: Color(hex: "#F7F7F7"),       // Very Light Gray
+        idNameText: Color(hex: "#A0D2DB"),         // Light Cyan Blue
+        scanToText: Color(hex: "#F7F7F7"),         // Very Light Gray
+        qrCodePlaceholderBackground: Color(hex: "#1A5E63"), // Medium Teal Green
+        qrCodeIcon: Color(hex: "#F7F7F7"),           // Very Light Gray
+        infoLabelCategoryBackground: Color(hex: "#F7F7F7"), // Very Light Gray
+        infoLabelValueBackground: Color(hex: "#58B09C")    // Sea Green
+    )
+    
+    static let availableCardThemes: [CardTheme] = [themeOne, themeTwo, themeThree, themeFour]
 }
 
 // Note: Ensure the Color(hex:) extension is available and working.

@@ -1,5 +1,16 @@
 import SwiftUI
 
+// Helper Shape for specific rounded corners
+struct RoundedCorner: Shape {
+    var radius: CGFloat = .infinity
+    var corners: UIRectCorner = .allCorners
+
+    func path(in rect: CGRect) -> Path {
+        let path = UIBezierPath(roundedRect: rect, byRoundingCorners: corners, cornerRadii: CGSize(width: radius, height: radius))
+        return Path(path.cgPath)
+    }
+}
+
 struct StatLabelView: View {
     let category: String
     let value: String
@@ -7,20 +18,24 @@ struct StatLabelView: View {
     let scale: CGFloat
 
     var body: some View {
-        HStack(spacing: 0) { // No space, backgrounds will meet to form a continuous capsule look
+        VStack(alignment: .leading, spacing: 0) { // Category on top of value
             Text(category.uppercased())
                 .font(CardView.NewCardFonts.infoBarCategory(scale: scale))
-                .padding(EdgeInsets(top: 4 * scale, leading: 6 * scale, bottom: 4 * scale, trailing: 3 * scale)) // Fine-tuned padding
-                .background(theme.infoLabelCategoryBackground) // Color for category part
-                .foregroundColor(theme.tagText) // Using existing tagText color for now
+                .padding(EdgeInsets(top: 6 * scale, leading: 8 * scale, bottom: 2 * scale, trailing: 8 * scale))
+                .frame(maxWidth: .infinity, alignment: .leading) // Ensure frame is set before background for correct clipping area
+                .background(theme.infoLabelCategoryBackground)
+                .clipShape(RoundedCorner(radius: 8 * scale, corners: [.topLeft, .topRight]))
+                .foregroundColor(theme.tagText)
 
             Text(value)
                 .font(CardView.NewCardFonts.infoBarValue(scale: scale))
-                .padding(EdgeInsets(top: 4 * scale, leading: 3 * scale, bottom: 4 * scale, trailing: 6 * scale)) // Fine-tuned padding
-                .background(theme.infoLabelValueBackground) // Color for value part
-                .foregroundColor(theme.tagText) // Using existing tagText color for now
+                .padding(EdgeInsets(top: 2 * scale, leading: 8 * scale, bottom: 6 * scale, trailing: 8 * scale))
+                .frame(maxWidth: .infinity, alignment: .leading) // Ensure frame is set before background for correct clipping area
+                .background(theme.infoLabelValueBackground)
+                .clipShape(RoundedCorner(radius: 8 * scale, corners: [.bottomLeft, .bottomRight]))
+                .foregroundColor(theme.tagText)
         }
-        .clipShape(Capsule()) // Clip the conjoined parts into a single capsule shape
+        // Removed clipShape from VStack, individual parts handle their clipping
         .frame(maxWidth: .infinity) // Allows the label to expand and helps with even distribution in parent HStack
     }
 }
