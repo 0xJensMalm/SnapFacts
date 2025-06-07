@@ -11,6 +11,7 @@ import SwiftUI
 struct CardView: View {
     @StateObject var themeManager = ThemeManager() // Manages theme state
     let cardContent: CardContent
+    @State private var uniqueCardId: Int = 0 // For the persistent card ID
 
     // State for 3D rotation (Y-axis only for flipping)
     @State private var currentYRotationAmount: Double = 0.0
@@ -23,8 +24,15 @@ struct CardView: View {
     // Fonts based on the new design (can be moved to UIConfigLayout or defined better)
     struct NewCardFonts {
         static let title = Font.system(size: 48, weight: .bold, design: .default)
-        static let infoBar = Font.system(size: 10, weight: .medium, design: .default)
+        static let infoBar = Font.system(size: 10, weight: .medium, design: .default) // Kept for reference, new labels use specific fonts
         static let tag = Font.system(size: 10, weight: .bold, design: .default)
+        // New scalable fonts for Info Bar labels
+        static func infoBarCategory(scale: CGFloat) -> Font {
+            Font.system(size: 9 * scale, weight: .bold, design: .default)
+        }
+        static func infoBarValue(scale: CGFloat) -> Font {
+            Font.system(size: 9 * scale, weight: .medium, design: .default)
+        }
         static let idNumber = Font.system(size: 40, weight: .heavy, design: .default)
         static let idName = Font.system(size: 14, weight: .medium, design: .default)
         static let disclaimer = Font.system(size: 7, weight: .regular, design: .default)
@@ -32,27 +40,16 @@ struct CardView: View {
     }
 
 
-    // MODIFIED: Initializer to accept the card content
-    init(cardContent: CardContent = SampleCardData.vansOldSkool) { // Default sample data for easy preview/use
+    // MODIFIED: Initializer to accept the card content and set unique ID
+    init(cardContent: CardContent = SampleCardData.vansOldSkool) { 
         self.cardContent = cardContent
-    }
 
-    // Private helper view for styling info tags
-    private struct InfoTagView: View {
-        let text: String
-        let scale: CGFloat
-        let tagTextColor: Color
-        let tagBackgroundColor: Color
-
-        var body: some View {
-            Text(text)
-                .font(NewCardFonts.tag)
-                .foregroundColor(tagTextColor)
-                .padding(.horizontal, 10 * scale)
-                .padding(.vertical, 4 * scale)
-                .background(tagBackgroundColor)
-                .clipShape(Capsule())
-        }
+        // Initialize uniqueCardId by incrementing a stored counter
+        let currentTotal = UserDefaults.standard.integer(forKey: "totalSnapFactsCardsMade")
+        let newId = currentTotal + 1
+        UserDefaults.standard.set(newId, forKey: "totalSnapFactsCardsMade")
+        // Assign to _uniqueCardId.wrappedValue directly in init for @State
+        self._uniqueCardId = State(initialValue: newId)
     }
 
     var body: some View {
@@ -71,12 +68,28 @@ struct CardView: View {
 
             // NEW Card Front Face Design
             let cardFrontFace = VStack(alignment: .center, spacing: 0) {
-                // 1. Top Title Section
-                Text(cardContent.title.uppercased())
-                    .font(NewCardFonts.title) // Font size not scaled for now
-                    .foregroundColor(themeManager.currentTheme.titleText)
-                    .padding(.top, 20 * scale)
-                    .padding(.bottom, 10 * scale)
+                // 1. Top Header Section (Logo and Title/ID)
+                HStack(alignment: .center, spacing: 10 * scale) { // Align items vertically centered
+                    Image("snapFacts")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(height: 120 * scale) // User updated logo height to 120 * scale
+
+                    // This VStack contains the ID and Title. It's pushed to the right.
+                    VStack(alignment: .leading, spacing: 2 * scale) { // Internal text alignment is leading
+                        Text(String(format: "%03d", uniqueCardId)) // Display dynamic, formatted persistent ID
+                            .font(NewCardFonts.idNumber.weight(.medium))
+                            .foregroundColor(themeManager.currentTheme.idNumberText)
+                        Text(cardContent.title.uppercased())
+                            .font(NewCardFonts.idName.weight(.semibold))
+                            .foregroundColor(themeManager.currentTheme.idNameText)
+                            .lineLimit(2)
+                            .fixedSize(horizontal: false, vertical: true) // Allows text to wrap
+                    }
+                    .frame(maxWidth: .infinity, alignment: .trailing) // Pushes this VStack to the trailing edge of the HStack
+                }
+                .padding(.top, 15 * scale) // Vertical padding for the header section
+                .padding(.bottom, 0 * scale) // MOVED IMAGE UP: No padding after header, before main image
 
                 // 2. Main Image Section
                 ZStack {
@@ -90,54 +103,41 @@ struct CardView: View {
                         .padding(4 * scale)
                 }
                 // Horizontal padding removed, now controlled by cardFrontFace
-                .frame(height: 210 * scale) // Total height for the image section including padding
-                .padding(.bottom, 15 * scale)
+                .frame(height: 225 * scale) // Image frame height (can be increased if needed due to more space)
+                .padding(.bottom, 5 * scale) // FURTHER REDUCED padding after image, before info bar
 
-                // 3. Info Bar
-                HStack(spacing: 8 * scale) {
-                    InfoTagView(text: "VAL 1", scale: scale, tagTextColor: themeManager.currentTheme.tagText, tagBackgroundColor: themeManager.currentTheme.tagBackground)
-                    InfoTagView(text: "VAL 2", scale: scale, tagTextColor: themeManager.currentTheme.tagText, tagBackgroundColor: themeManager.currentTheme.tagBackground)
-                    InfoTagView(text: "VAL 3", scale: scale, tagTextColor: themeManager.currentTheme.tagText, tagBackgroundColor: themeManager.currentTheme.tagBackground)
-                    InfoTagView(text: "VAL 4", scale: scale, tagTextColor: themeManager.currentTheme.tagText, tagBackgroundColor: themeManager.currentTheme.tagBackground)
+                // 3. Info Bar - Redesigned with StatLabelView
+                HStack(spacing: 5 * scale) { // Spacing between StatLabelViews
+                    StatLabelView(category: "TYPE", value: "Vintage", theme: themeManager.currentTheme, scale: scale)
+                    StatLabelView(category: "ERA", value: "90s", theme: themeManager.currentTheme, scale: scale)
+                    StatLabelView(category: "COLOR", value: "Red", theme: themeManager.currentTheme, scale: scale)
+                    StatLabelView(category: "STYLE", value: "Retro", theme: themeManager.currentTheme, scale: scale)
                 }
-                .frame(maxWidth: .infinity)
-                .padding(.horizontal, 4 * scale)
-                .padding(.vertical, 8 * scale)
-                .background(themeManager.currentTheme.infoBarBackground)
-                .cornerRadius(8 * scale)
-                // Horizontal padding removed, now controlled by cardFrontFace
-                .padding(.bottom, 15 * scale)
+                .padding(.horizontal, 10 * scale) // Overall horizontal padding for the info bar content
+                .padding(.vertical, 6 * scale)   // Vertical padding around the StatLabelViews, inside the info bar background
+                .background(themeManager.currentTheme.infoBarBackground) // Background for the entire info bar area
+                .clipShape(RoundedRectangle(cornerRadius: 12 * scale)) // Clip the info bar background
 
                 // 4. Bottom Section
                 HStack(alignment: .center, spacing: 10 * scale) { // Align items center vertically
-                    // Left Column (New Container for FP, ID, Name)
-                    VStack(alignment: .leading, spacing: 4 * scale) {
-                        HStack(alignment: .bottom, spacing: 8 * scale) {
-                            RoundedRectangle(cornerRadius: 6 * scale)
-                                .fill(themeManager.currentTheme.fingerprintBackground)
-                                .frame(width: 50 * scale, height: 50 * scale)
-                                .overlay(
-                                    Text("FP")
-                                        .font(.system(size: max(6, 10 * scale)))
-                                        .foregroundColor(themeManager.currentTheme.fingerprintSymbol)
-                                )
-                                .onTapGesture {
-                                    themeManager.cycleTheme()
-                                }
-                            VStack(alignment: .leading, spacing: 0) {
-                                Text("005") // Placeholder ID Number
-                                    .font(NewCardFonts.idNumber)
-                                    .foregroundColor(themeManager.currentTheme.idNumberText)
-                                Text("\"\(cardContent.title.uppercased())_ID\"") // Placeholder ID Name
-                                    .font(NewCardFonts.idName)
-                                    .foregroundColor(themeManager.currentTheme.idNameText)
+                    // Left Column (New Container for FP - Centered)
+                    VStack(alignment: .center, spacing: 4 * scale) { // Changed to .center for FP box
+                        // FP Box - now directly in the VStack, will be centered
+                        RoundedRectangle(cornerRadius: 8 * scale) // Slightly larger corner radius
+                            .fill(themeManager.currentTheme.fingerprintBackground)
+                            .frame(width: 60 * scale, height: 60 * scale) // Slightly larger FP box
+                            .overlay(
+                                Text("FP")
+                                    .font(.system(size: 18 * scale, weight: .bold)) // Larger, bolder "FP" text
+                                    .foregroundColor(themeManager.currentTheme.fingerprintSymbol)
+                            )
+                            .onTapGesture {
+                                themeManager.cycleTheme()
                             }
-                        }
-                        // Disclaimer and Spacer removed
                     }
-                    .padding(10 * scale) // Internal padding for the new container
+                    .padding(10 * scale) // Internal padding for the container
                     .frame(maxWidth: .infinity, idealHeight: qrCodeSectionSize, maxHeight: qrCodeSectionSize) // Span width, match QR height
-                    .background(themeManager.currentTheme.bottomContainerBackground) // Light background for the container
+                    .background(themeManager.currentTheme.bottomContainerBackground)
                     .cornerRadius(8 * scale)
 
                     // Right Column (QR Code and Vertical Text)
@@ -162,7 +162,7 @@ struct CardView: View {
                     }
                     .frame(height: qrCodeSectionSize) // Ensure this HStack also respects the height
                 }
-                .padding(.bottom, 20 * scale)
+                .padding(.bottom, 30 * scale) // Increased bottom padding for more space
                 
                 Spacer() // Pushes all content to the top if card is taller
             }

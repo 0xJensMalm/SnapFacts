@@ -65,6 +65,9 @@ struct CardTheme: Identifiable {
     var scanToText: Color
     var qrCodePlaceholderBackground: Color
     var qrCodeIcon: Color
+    // New colors for two-part info labels
+    var infoLabelCategoryBackground: Color
+    var infoLabelValueBackground: Color
 }
 
 struct CardThemes {
@@ -83,8 +86,10 @@ struct CardThemes {
         idNumberText: Color(hex: "#F0E6D2"), // Off-White/Light Gold
         idNameText: Color(hex: "#A094B7"), // Light Grayish Purple
         scanToText: Color(hex: "#B08D57"), // Muted Gold/Bronze
-        qrCodePlaceholderBackground: Color(hex: "#5C4B7E"), // Slightly Lighter Dark Purple
-        qrCodeIcon: Color(hex: "#F0E6D2") // Off-White/Light Gold
+        qrCodePlaceholderBackground: Color(hex: "#BDC3C7"), // Medium Gray (Corrected)
+        qrCodeIcon: Color(hex: "#F7DC6F"), // Electric Yellow (Corrected)
+        infoLabelCategoryBackground: Color(hex: "#4A0060"), // Dark Purple
+        infoLabelValueBackground: Color(hex: "#B08D57")    // Gold
     )
 
     static let themeTwo = CardTheme(
@@ -101,9 +106,11 @@ struct CardThemes {
         fingerprintSymbol: Color(hex: "#4A2B0F"), // Dark Brown
         idNumberText: Color(hex: "#4A2B0F"), // Dark Brown
         idNameText: Color(hex: "#784212"), // Medium Brown
-        scanToText: Color(hex: "#4A2B0F"), // Dark Brown
-        qrCodePlaceholderBackground: Color(hex: "#D35400"), // Medium Orange
-        qrCodeIcon: Color(hex: "#FDEBD0") // Light Yellow/Cream
+        scanToText: Color(hex: "D2691E"), // Burnt Orange
+        qrCodePlaceholderBackground: Color(hex: "FFE5B4"), // Light Orange (Peach)
+        qrCodeIcon: Color(hex: "D2691E"), // Burnt Orange
+        infoLabelCategoryBackground: Color(hex: "C84B31"), // Dark Orange
+        infoLabelValueBackground: Color(hex: "FFA500")    // Orange (Corrected comment)
     )
 
     static let themeThree = CardTheme(
@@ -120,9 +127,11 @@ struct CardThemes {
         fingerprintSymbol: Color(hex: "#F5F5DC"), // Cream/Off-White
         idNumberText: Color(hex: "#F5F5DC"), // Cream/Off-White
         idNameText: Color(hex: "#A1887F"), // Light Brownish Gray
-        scanToText: Color(hex: "#F5F5DC"), // Cream/Off-White
-        qrCodePlaceholderBackground: Color(hex: "#6B8E23"), // Lighter Olive Green
-        qrCodeIcon: Color(hex: "#F5F5DC") // Cream/Off-White
+        scanToText: Color(hex: "A47C48"), // Light Brown (Original)
+        qrCodePlaceholderBackground: Color(hex: "D2B48C"), // Tan (Original)
+        qrCodeIcon: Color(hex: "556B2F"), // Dark Olive Green (Original)
+        infoLabelCategoryBackground: Color(hex: "2E4030"), // Dark Green (Corrected for Forest Canopy)
+        infoLabelValueBackground: Color(hex: "A47C48")    // Brown (Corrected for Forest Canopy)
     )
 
     static let themeFour = CardTheme(
@@ -139,9 +148,11 @@ struct CardThemes {
         fingerprintSymbol: Color(hex: "#2C3E50"), // Dark Charcoal Gray
         idNumberText: Color(hex: "#2C3E50"), // Dark Charcoal Gray
         idNameText: Color(hex: "#566573"), // Medium Gray
-        scanToText: Color(hex: "#2C3E50"), // Dark Charcoal Gray
-        qrCodePlaceholderBackground: Color(hex: "#B2BABB"), // Medium Silver/Gray
-        qrCodeIcon: Color(hex: "#FFFFFF") // White
+        scanToText: Color(hex: "B0C4DE"), // Light Steel Blue (Original)
+        qrCodePlaceholderBackground: Color(hex: "B0C4DE"), // Light Steel Blue (Original)
+        qrCodeIcon: Color(hex: "4682B4"), // Steel Blue (Original)
+        infoLabelCategoryBackground: Color(hex: "3A506B"), // Dark Blue (Corrected for Arctic Frost)
+        infoLabelValueBackground: Color(hex: "9DB4C0")    // Light Gray-Blue (Corrected for Arctic Frost)
     )
 
     static let themeFive = CardTheme(
@@ -159,9 +170,12 @@ struct CardThemes {
         idNumberText: Color(hex: "#F7DC6F"), // Electric Yellow
         idNameText: Color(hex: "#FFFFFF"), // White
         scanToText: Color(hex: "#E91E63"), // Hot Pink
-        qrCodePlaceholderBackground: Color(hex: "#BDC3C7"), // Medium Gray
-        qrCodeIcon: Color(hex: "#F7DC6F") // Electric Yellow
+        qrCodePlaceholderBackground: Color(hex: "#F0E68C"), // Khaki (Original)
+        qrCodeIcon: Color(hex: "#333333"), // Dark Gray (Added missing)
+        infoLabelCategoryBackground: Color(hex: "#00796B"), // Dark Teal
+        infoLabelValueBackground: Color(hex: "#E91E63")    // Pink
     )
+
     
     static let availableCardThemes: [CardTheme] = [themeOne, themeTwo, themeThree, themeFour, themeFive]
 }
