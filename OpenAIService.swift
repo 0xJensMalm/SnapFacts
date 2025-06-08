@@ -53,30 +53,20 @@ final class OpenAIService {
 
     // Static function to retrieve the API key from Info.plist
     private static func getOpenAIAPIKey() throws -> String {
-        guard let infoDictionary = Bundle.main.infoDictionary,
-              let apiKeyFromPlist = infoDictionary["OpenAIAPIKey"] as? String else {
-            // For debugging, print out infoDictionary keys if not found
-            // print("Bundle.main.infoDictionary: \(Bundle.main.infoDictionary?.keys ?? [])")
-            print("[OpenAIService] CRITICAL ERROR: 'OpenAIAPIKey' not found in Info.plist.")
-            throw OpenAIError.apiKeyNotFound
-        }
+        let apiKey = APIKeys.openAI
 
         // Ensure the key isn't an unresolved placeholder or empty
-        if apiKeyFromPlist.isEmpty || apiKeyFromPlist == "$(OPENAI_API_KEY_APP)" || apiKeyFromPlist.contains("YOUR_API_KEY") {
-             let errorMessage = """
-                [OpenAIService] CRITICAL ERROR: API Key is a placeholder or not properly resolved in Info.plist.
-                Value found: '\(apiKeyFromPlist)'.
-                Potential issues:
-                1. Secrets.xcconfig is missing or OPENAI_API_KEY is not set there.
-                2. Config.xcconfig (or Secrets.xcconfig directly) is not correctly assigned to project configurations in Xcode Build Settings (Info tab of Project).
-                3. User-Defined Build Setting (e.g., OPENAI_API_KEY_APP) is not set to $(OPENAI_API_KEY) in Target's Build Settings.
-                4. Info.plist key 'OpenAIAPIKey' is not set to your User-Defined Build Setting (e.g., $(OPENAI_API_KEY_APP)).
-                5. You might need to clean your build folder (Cmd+Shift+K) and rebuild the project.
-                """
+        if apiKey.isEmpty || apiKey.contains("YOUR_API_KEY") || apiKey.contains("PLACEHOLDER") {
+            let errorMessage = """
+            [OpenAIService] CRITICAL ERROR: API Key in APIKey.swift is a placeholder, empty, or invalid.
+            Value found: '\(apiKey)'.
+            Please ensure APIKey.swift contains your valid OpenAI API key.
+            """
             print(errorMessage)
-            throw OpenAIError.apiKeyNotFound
+            // Consider logging this error to your analytics if you have one
+            throw OpenAIError.apiKeyNotFound // Or a more specific error like .apiKeyInvalid
         }
-        return apiKeyFromPlist
+        return apiKey
     }
     
     /// Initialize with dynamic model IDs. If you do not explicitly pass models, defaults are:

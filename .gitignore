@@ -38,4 +38,5 @@ fastlane/test_output
 
 # Secrets
 Secrets.xcconfig
+APIKey.swift
 *.xcconfig # If you want to ignore all xcconfig by default and only include specific ones
