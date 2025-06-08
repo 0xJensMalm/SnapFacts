@@ -243,33 +243,6 @@ struct CardView: View {
     }
 }
 
-struct IndividualStatView: View {
-    @EnvironmentObject var themeManager: ThemeManager // Access current theme
-
-    let category: String
-    let value: StatValue // MODIFIED: Expects StatValue enum type
-
-    var body: some View {
-        VStack(spacing: 2) { // Reduced spacing
-            Text(category)
-                .font(UIConfigLayout.statCategoryFont) // Uses smaller font from UIConfigLayout
-                .foregroundColor(themeManager.currentTheme.idNameText)
-                .lineLimit(1)
-                .minimumScaleFactor(0.7) // Allow more aggressive scaling if needed
-            Text(value.displayString) // MODIFIED: Use displayString from StatValue
-                .font(UIConfigLayout.statValueFont) // Uses smaller font
-                .foregroundColor(themeManager.currentTheme.idNumberText)
-                .lineLimit(1) // Add lineLimit for potentially longer string values
-                .minimumScaleFactor(0.5) // Allow more scaling for strings
-        }
-        .frame(maxWidth: .infinity)
-        .frame(minHeight: UIConfigLayout.statItemMinHeight) // Uses smaller minHeight
-        .padding(UIConfigLayout.statItemInternalPadding) // Uses smaller padding
-        .background(themeManager.currentTheme.imageFrameBackground)
-        .cornerRadius(UIConfigLayout.statItemCornerRadius) // Uses smaller cornerRadius
-    }
-}
-
 // MARK: - Preview
 #Preview {
     // MODIFIED: Provide the required cardContent data
