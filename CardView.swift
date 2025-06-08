@@ -1,4 +1,5 @@
 import SwiftUI
+import CoreImage.CIFilterBuiltins
 
 // Make sure CardDataModels.swift is in your project and defines these:
 // enum StatValue: Decodable, Hashable { ... }
@@ -17,7 +18,7 @@ struct CardView: View {
     @State private var currentYRotationAmount: Double = 0.0
     @State private var accumulatedYRotationAmount: Double = 0.0
     @State private var isFlipped: Bool = false
-
+    @State private var isShareSheetPresented = false
 
     // Fonts based on the new design (can be moved to UIConfigLayout or defined better)
     struct NewCardFonts {
@@ -37,6 +38,25 @@ struct CardView: View {
         static let scanTo = Font.system(size: 10, weight: .bold, design: .default)
     }
 
+
+    private func generateQRCode(from string: String) -> Image? {
+        let context = CIContext()
+        guard let filter = CIFilter(name: "CIQRCodeGenerator") else { return nil }
+        let data = Data(string.utf8)
+        filter.setValue(data, forKey: "inputMessage")
+        filter.setValue("M", forKey: "inputCorrectionLevel") // Correction level
+
+        if let outputImage = filter.outputImage {
+            let transform = CGAffineTransform(scaleX: 10, y: 10) // Scale for clarity
+            let scaledCIImage = outputImage.transformed(by: transform)
+            if let cgimg = context.createCGImage(scaledCIImage, from: scaledCIImage.extent) {
+                let uiImage = UIImage(cgImage: cgimg)
+                return Image(uiImage: uiImage)
+                    .interpolation(.none) // Keep it sharp
+            }
+        }
+        return nil
+    }
 
     // MODIFIED: Initializer to accept the card content and set unique ID
     init(cardContent: CardContent = SampleCardData.vansOldSkool) { 
@@ -140,7 +160,7 @@ struct CardView: View {
 
                     // Right Column (QR Code and Vertical Text)
                     HStack(spacing: 5 * scale) {
-                        Text("SCOAN TO")
+                        Text("SCAN TO")
                             .font(NewCardFonts.scanTo)
                             .foregroundColor(themeManager.currentTheme.scanToText)
                             .rotationEffect(.degrees(-90))
@@ -151,12 +171,29 @@ struct CardView: View {
                             .fill(themeManager.currentTheme.qrCodePlaceholderBackground)
                             .frame(width: qrCodeSectionSize, height: qrCodeSectionSize) // Use new QR code size
                             .overlay(
-                                Image(systemName: "qrcode")
-                                    .resizable()
-                                    .scaledToFit()
-                                    .padding(8 * scale) // Slightly more padding for larger QR
-                                    .foregroundColor(themeManager.currentTheme.qrCodeIcon)
+                                Group {
+                                    if let qrImage = generateQRCode(from: cardContent.id) {
+                                        qrImage
+                                            .resizable()
+                                            .scaledToFit()
+                                            .padding(8 * scale) // Keep padding for consistency
+                                    } else {
+                                        // Fallback if QR generation fails
+                                        Image(systemName: "exclamationmark.triangle.fill")
+                                            .resizable()
+                                            .scaledToFit()
+                                            .padding(8 * scale)
+                                            .foregroundColor(.red) // Make fallback noticeable
+                                    }
+                                }
                             )
+
+                        Text("TRANSFER")
+                            .font(NewCardFonts.scanTo) // Use the same font as SCAN TO
+                            .foregroundColor(themeManager.currentTheme.scanToText) // Use the same color
+                            .rotationEffect(.degrees(-90)) // Same rotation
+                            .fixedSize()
+                            .frame(width: 20 * scale, height: qrCodeSectionSize) // Same frame setup
                     }
                     .frame(height: qrCodeSectionSize) // Ensure this HStack also respects the height
                 }
