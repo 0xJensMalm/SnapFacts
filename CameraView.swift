@@ -58,6 +58,9 @@ struct CameraView: View {
     // Completion handler to be called when card generation is finished (success or failure)
     var onGenerationComplete: ((Result<CardContent, Error>) -> Void)?
 
+    // Environment variable for dismissing the view
+    @Environment(\.presentationMode) var presentationMode
+
     // MARK: - Helpers
     private func handleTakePictureRequest() { triggerCapture = true }
 
@@ -76,6 +79,8 @@ struct CameraView: View {
             return
         }
         generator.generateCard(from: img, completion: completionHandler)
+        // Dismiss the CameraView immediately after starting generation
+        self.presentationMode.wrappedValue.dismiss()
     }
 
     private func handleCameraAccessDenied() {
