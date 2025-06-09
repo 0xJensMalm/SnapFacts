@@ -241,7 +241,7 @@ struct CameraView: View {
                 set: { _ in }
             )) {
                 if case .success(let card) = generator.phase {
-                    CardView(cardContent: card)
+                    CardView(cardContent: card, isFromSnapDex: false)
                         .toolbar { Button("Done") { generator.reset() } }
                 }
             }

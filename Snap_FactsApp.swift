@@ -1,10 +1,15 @@
 import SwiftUI
 
 @main
-struct Snap_FactsApp: App { // Or whatever your app's name is
+struct Snap_FactsApp: App {
+    @StateObject private var snapDexManager = SnapDexManager()
+    @StateObject private var themeManager = ThemeManager() // Assuming ThemeManager is still needed globally
+
     var body: some Scene {
         WindowGroup {
-            CameraView() // UPDATED: Make CameraView the initial view
+            SnapDexView()
+                .environmentObject(snapDexManager)
+                .environmentObject(themeManager) // Pass ThemeManager as well
         }
     }
 }

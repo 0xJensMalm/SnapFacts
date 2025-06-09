@@ -10,9 +10,11 @@ import CoreImage.CIFilterBuiltins
 import SwiftUI
 
 struct CardView: View {
-    @StateObject var themeManager = ThemeManager() // Manages theme state
+    @EnvironmentObject var themeManager: ThemeManager // Manages theme state
+    @EnvironmentObject var snapDexManager: SnapDexManager
     let cardContent: CardContent
-    @State private var uniqueCardId: Int = 0 // For the persistent card ID
+    let isFromSnapDex: Bool // True if viewing from SnapDex, false if newly generated
+    @Environment(\.presentationMode) var presentationMode
 
     // State for 3D rotation (Y-axis only for flipping)
     @State private var currentYRotationAmount: Double = 0.0
@@ -58,16 +60,12 @@ struct CardView: View {
         return nil
     }
 
-    // MODIFIED: Initializer to accept the card content and set unique ID
-    init(cardContent: CardContent = SampleCardData.vansOldSkool) { 
+    // MODIFIED: Initializer to accept card content and SnapDex status
+    init(cardContent: CardContent, isFromSnapDex: Bool) { 
         self.cardContent = cardContent
-
-        // Initialize uniqueCardId by incrementing a stored counter
-        let currentTotal = UserDefaults.standard.integer(forKey: "totalSnapFactsCardsMade")
-        let newId = currentTotal + 1
-        UserDefaults.standard.set(newId, forKey: "totalSnapFactsCardsMade")
-        // Assign to _uniqueCardId.wrappedValue directly in init for @State
-        self._uniqueCardId = State(initialValue: newId)
+        self.isFromSnapDex = isFromSnapDex
+        // The displayId should be part of CardContent, set when the card is created.
+        // No need to manage uniqueCardId state here if cardContent.displayId is reliable.
     }
 
     var body: some View {
@@ -95,7 +93,7 @@ struct CardView: View {
 
                     // This VStack contains the ID and Title. It's pushed to the right.
                     VStack(alignment: .leading, spacing: 2 * scale) { // Internal text alignment is leading
-                        Text(String(format: "%03d", uniqueCardId)) // Display dynamic, formatted persistent ID
+                        Text(String(format: "%03d", cardContent.displayId)) // Display card's persistent ID
                             .font(NewCardFonts.idNumber.weight(.medium))
                             .foregroundColor(themeManager.currentTheme.idNumberText)
                         Text(cardContent.title.uppercased())
@@ -275,8 +273,58 @@ struct CardView: View {
                 }
             }
             // The ZStack above will fill the GeometryReader by default
+
+            // Buttons Section
+            VStack {
+                Spacer() // Pushes buttons to the bottom
+                if isFromSnapDex {
+                    Button(action: {
+                        snapDexManager.releaseCard(cardContent)
+                        presentationMode.wrappedValue.dismiss() // Dismiss after releasing
+                    }) {
+                        Text("Release from SnapDex")
+                            .padding()
+                            .frame(maxWidth: .infinity)
+                            .background(Color.red)
+                            .foregroundColor(.white)
+                            .cornerRadius(10)
+                    }
+                    .padding([.horizontal, .bottom])
+                } else {
+                    HStack {
+                        Button(action: {
+                            // Action for Discard - typically dismiss the view
+                            presentationMode.wrappedValue.dismiss()
+                        }) {
+                            Text("Discard")
+                                .padding()
+                                .frame(maxWidth: .infinity)
+                                .background(Color.gray)
+                                .foregroundColor(.white)
+                                .cornerRadius(10)
+                        }
+
+                        Button(action: {
+                            snapDexManager.addCard(cardContent)
+                            // Optionally, disable button or show feedback
+                            // presentationMode.wrappedValue.dismiss() // Or dismiss after keeping
+                        }) {
+                            Text(snapDexManager.isCardCollected(cardContent) ? "Collected" : "Keep in SnapDex")
+                                .padding()
+                                .frame(maxWidth: .infinity)
+                                .background(snapDexManager.isCardCollected(cardContent) ? Color.green.opacity(0.5) : Color.green)
+                                .foregroundColor(.white)
+                                .cornerRadius(10)
+                        }
+                        .disabled(snapDexManager.isCardCollected(cardContent))
+                    }
+                    .padding([.horizontal, .bottom])
+                }
+            }
+            .frame(width: geometry.size.width, height: geometry.size.height) // Ensure buttons are within geo
+
         }
-        .environmentObject(themeManager)
+        // .environmentObject(themeManager) // Already provided by parent or App
     }
 }
 
@@ -309,6 +357,8 @@ struct IndividualStatView: View {
 
 // MARK: - Preview
 #Preview {
-    // MODIFIED: Provide the required cardContent data
-    CardView(cardContent: SampleCardData.vansOldSkool)
+    // MODIFIED: Provide the required cardContent data, isFromSnapDex, and environment objects
+    CardView(cardContent: SampleCardData.vansOldSkool, isFromSnapDex: false)
+        .environmentObject(SnapDexManager())
+        .environmentObject(ThemeManager())
 }

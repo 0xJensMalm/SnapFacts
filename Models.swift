@@ -6,7 +6,7 @@ import Foundation
 // MARK: – StatValue, CardStatItem, CardContent, AnalysisResult
 
 /// Wraps either an integer or a string: used for stat values in a card.
-enum StatValue: Decodable, Hashable {
+enum StatValue: Codable, Hashable {
     case int(Int)
     case string(String)
 
@@ -21,6 +21,16 @@ enum StatValue: Decodable, Hashable {
                 in: container,
                 debugDescription: "Expected Int or String for StatValue"
             )
+        }
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        switch self {
+        case .int(let intVal):
+            try container.encode(intVal)
+        case .string(let strVal):
+            try container.encode(strVal)
         }
     }
 }
@@ -38,7 +48,7 @@ extension StatValue {
 }
 
 /// Represents one stat cell in a card (e.g. “PRICE: 60” or “COMFORT: High”).
-struct CardStatItem: Identifiable, Hashable {
+struct CardStatItem: Codable, Identifiable, Hashable {
     let id = UUID()
     let category: String
     let value: StatValue
@@ -46,8 +56,9 @@ struct CardStatItem: Identifiable, Hashable {
 
 /// The fully‐assembled card data (title, description, image URL or name, plus stats).
 /// Using `localImageName` to match the fix in CardGeneratorViewModel.
-struct CardContent: Identifiable, Hashable {
+struct CardContent: Codable, Identifiable, Hashable {
     let id: String
+    let displayId: Int // Persistent, user-facing sequential ID
     let title: String
     let description: String
     let detailedSubjectDescription: String
@@ -117,6 +128,7 @@ struct StatsContainer: Decodable {
 enum SampleCardData {
     static let vansOldSkool = CardContent(
         id: "vans_old_skool_001",
+        displayId: 1, // Added for preview
         title: "VANS OLD SKOOL",
         description:
             "The Vans Old Skool: a timeless skate shoe with side stripe, durable canvas & suede upper, and signature waffle outsole. Iconic style meets everyday comfort.",

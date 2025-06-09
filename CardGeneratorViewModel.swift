@@ -163,9 +163,15 @@ final class CardGeneratorViewModel: ObservableObject {
                 // Step 4: Assemble CardContent
                 // For description, using visualTraits. Fallback to subject if empty.
                 let descriptionText = analysisData.visualTraits.isEmpty ? analysisData.subject : analysisData.visualTraits
+
+                // Generate displayId
+                let currentTotalCards = UserDefaults.standard.integer(forKey: "totalSnapFactsCardsMade")
+                let newDisplayId = currentTotalCards + 1
+                UserDefaults.standard.set(newDisplayId, forKey: "totalSnapFactsCardsMade")
                 
                 let card = CardContent(
                     id: UUID().uuidString, // Keep unique ID generation
+                    displayId: newDisplayId,
                     title: title,
                     description: descriptionText, 
                     detailedSubjectDescription: artPrompt, // Store the art prompt here
