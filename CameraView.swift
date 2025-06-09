@@ -55,6 +55,9 @@ struct CameraView: View {
     // **NEW**: whether to show the sheet for model options
     @State private var showModelOptions = false
 
+    // Completion handler to be called when card generation is finished (success or failure)
+    var onGenerationComplete: ((Result<CardContent, Error>) -> Void)?
+
     // MARK: - Helpers
     private func handleTakePictureRequest() { triggerCapture = true }
 
@@ -65,7 +68,14 @@ struct CameraView: View {
 
     private func confirmPicture() {
         guard let img = capturedUIImage else { return }
-        generator.generateCard(from: img)
+        guard let completionHandler = onGenerationComplete else {
+            print("[CameraView] Error: onGenerationComplete handler is nil. Cannot proceed with card generation callback.")
+            // Optionally, still call generateCard without a handler if you want the old behavior as a fallback,
+            // but for the SnapDex flow, this handler is crucial.
+            // generator.generateCard(from: img) // Old call without completion
+            return
+        }
+        generator.generateCard(from: img, completion: completionHandler)
     }
 
     private func handleCameraAccessDenied() {
@@ -307,5 +317,7 @@ struct CameraView: View {
 
 // MARK: - Preview
 #Preview {
-    CameraView()
+    CameraView(onGenerationComplete: { result in
+        print("[Preview] CameraView generation completed: \(result)")
+    })
 }

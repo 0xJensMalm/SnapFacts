@@ -127,12 +127,14 @@ final class CardGeneratorViewModel: ObservableObject {
     /// 1) Analyzing the input image with Vision-Chat.
     /// 2) Generating a new card image using DALL·E.
     /// 3) Assembling the `CardContent`.
-    func generateCard(from uiImage: UIImage) {
+    func generateCard(from uiImage: UIImage, completion: @escaping (Result<CardContent, Error>) -> Void) {
         guard let currentOpenAIService = openAI else {
             print("[ViewModel] Cannot generate card: OpenAIService is not initialized.")
+            let errorMsg = "OpenAI Service not available. Please check setup or restart the app."
             if !phaseIsServiceInitError() { // If not already in an init error, set one.
-                 self.phase = .failure("OpenAI Service not available. Please check setup or restart the app.")
+                 self.phase = .failure(errorMsg)
             }
+            completion(.failure(GeneratorError(message: errorMsg)))
             return
         }
 
@@ -181,15 +183,18 @@ final class CardGeneratorViewModel: ObservableObject {
                 print("[ViewModel] CardContent assembled. Title: \(card.title)")
 
                 phase = .success(card)
+                completion(.success(card))
 
             } catch let openAIError as OpenAIService.OpenAIError {
                 let errorMessage = errorDescription(for: openAIError)
                 print("[ViewModel] OpenAI Error during card generation: \(errorMessage)")
                 phase = .failure("OpenAI Error: \(errorMessage)")
+                completion(.failure(GeneratorError(message: "OpenAI Error: \(errorMessage)")))
             } catch {
                 let errorMessage = error.localizedDescription
                 print("[ViewModel] General Error during card generation: \(errorMessage)")
                 phase = .failure("Error: \(errorMessage)")
+                completion(.failure(GeneratorError(message: "Error: \(errorMessage)")))
             }
         }
     }
@@ -201,6 +206,7 @@ final class CardGeneratorViewModel: ObservableObject {
             throw OpenAIService.OpenAIError.unexpectedResponseFormat 
         }
         
+        // Restored do-catch block for parsing stats
         do {
             let decodedStatsContainer = try JSONDecoder().decode(StatsContainer.self, from: jsonData)
             
@@ -221,6 +227,12 @@ final class CardGeneratorViewModel: ObservableObject {
             // Propagate the error; could be a decoding error or other JSON issue
             throw error 
         }
+    }
+
+    // Custom error for the generator - correctly positioned at class level
+    struct GeneratorError: LocalizedError {
+        let message: String
+        var errorDescription: String? { message }
     }
 
     func reset() {

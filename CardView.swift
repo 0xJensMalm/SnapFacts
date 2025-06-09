@@ -14,6 +14,7 @@ struct CardView: View {
     @EnvironmentObject var snapDexManager: SnapDexManager
     let cardContent: CardContent
     let isFromSnapDex: Bool // True if viewing from SnapDex, false if newly generated
+    var onDismiss: (() -> Void)? = nil // Closure to call when the view is dismissed
     @Environment(\.presentationMode) var presentationMode
 
     // State for 3D rotation (Y-axis only for flipping)
@@ -60,10 +61,11 @@ struct CardView: View {
         return nil
     }
 
-    // MODIFIED: Initializer to accept card content and SnapDex status
-    init(cardContent: CardContent, isFromSnapDex: Bool) { 
+    // MODIFIED: Initializer to accept card content, SnapDex status, and an onDismiss closure
+    init(cardContent: CardContent, isFromSnapDex: Bool, onDismiss: (() -> Void)? = nil) { 
         self.cardContent = cardContent
         self.isFromSnapDex = isFromSnapDex
+        self.onDismiss = onDismiss
         // The displayId should be part of CardContent, set when the card is created.
         // No need to manage uniqueCardId state here if cardContent.displayId is reliable.
     }
@@ -325,6 +327,11 @@ struct CardView: View {
 
         }
         // .environmentObject(themeManager) // Already provided by parent or App
+        .onDisappear {
+            // Call the onDismiss closure if it's set
+            // This is useful for cleanup when CardView is popped, especially for newly generated cards.
+            onDismiss?()
+        }
     }
 }
 

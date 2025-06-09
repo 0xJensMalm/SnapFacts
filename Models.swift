@@ -119,6 +119,40 @@ struct StatsContainer: Decodable {
 }
 
 
+// MARK: - Card Generation Status
+
+import SwiftUI // Required for Color type
+
+enum CardGenerationStatus {
+    case none       // No card generation process active
+    case awaitingAPI  // Waiting for API response (text + image)
+    case ready        // New card is ready to be viewed
+
+    var color: Color {
+        switch self {
+        case .none: return .gray
+        case .awaitingAPI: return .yellow
+        case .ready: return .green
+        }
+    }
+
+    var label: String {
+        switch self {
+        case .none: return ""
+        case .awaitingAPI: return "Processing..."
+        case .ready: return "New Card!"
+        }
+    }
+    
+    var systemImageName: String? {
+        switch self {
+        case .none: return nil // Or a default icon like "circle.slash" if you prefer it not to be empty
+        case .awaitingAPI: return "hourglass"
+        case .ready: return "gift.fill"
+        }
+    }
+}
+
 // ─────────────────────────────────────────────────────────────────
 // MARK: – Sample Data (for previews or default CardView)
 

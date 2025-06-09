@@ -3,12 +3,16 @@ import SwiftUI
 struct SnapDexView: View {
     @EnvironmentObject var snapDexManager: SnapDexManager
     @State private var showingCardGenerationView = false // To navigate to card generation
+    @State private var cardGenerationStatus: CardGenerationStatus = .none // Manages the state of new card generation
+    @State private var newlyGeneratedCard: CardContent? = nil // Holds the card from CameraView
+    @State private var shouldNavigateToNewCardView: Bool = false // Triggers navigation to CardView
 
     // Define grid layout: 3 columns, flexible spacing
     let columns: [GridItem] = Array(repeating: .init(.flexible()), count: 3)
 
     var body: some View {
         NavigationView {
+            ZStack {
             VStack {
                 if snapDexManager.collectedCards.isEmpty {
                     VStack {
@@ -36,6 +40,7 @@ struct SnapDexView: View {
                 Spacer() // Pushes the button to the bottom
 
                 Button(action: {
+                    cardGenerationStatus = .awaitingAPI // Set status before showing camera
                     showingCardGenerationView = true
                 }) {
                     Text("Find New Card")
@@ -48,15 +53,105 @@ struct SnapDexView: View {
                 }
                 .padding()
             }
-            .navigationTitle("SnapDex")
-            .sheet(isPresented: $showingCardGenerationView) {
+            // New Status Button Overlay
+            VStack {
+                Spacer()
+                HStack {
+                    Spacer()
+                    statusButton
+                        .padding(20) // Adjust padding as needed
+                }
+            }
+            .background(
+                // NavigationLink for the new card, activated programmatically
+                NavigationLink(destination: CardView(cardContent: newlyGeneratedCard ?? SampleCardData.vansOldSkool, isFromSnapDex: false, onDismiss: { newlyGeneratedCard = nil; cardGenerationStatus = .none }),
+                               isActive: $shouldNavigateToNewCardView) {
+                    EmptyView()
+                }
+            )
+        }
+        .navigationTitle("SnapDex")
+        .sheet(isPresented: $showingCardGenerationView, onDismiss: {
+            // If the sheet is dismissed manually *before* card generation completes,
+            // reset status if it was .awaitingAPI.
+            if cardGenerationStatus == .awaitingAPI {
+                cardGenerationStatus = .none
+            }
+        }) {
                 // This is where you would present your Camera/Card Generation View
                 // For now, let's use a placeholder or your existing CardGenerationView if it's ready
                 // CardGeneratorView() or a similar view
-                CameraView() // Present the CameraView for new card generation
-                    .environmentObject(snapDexManager) // Pass along if needed by CameraView or subsequent views
-                    .environmentObject(ThemeManager()) // Assuming CameraView might also need ThemeManager
+                CameraView { result in // Completion handler from CameraView
+                    showingCardGenerationView = false // Dismiss the sheet first
+                    switch result {
+                    case .success(let card):
+                        self.newlyGeneratedCard = card
+                        self.cardGenerationStatus = .ready
+                        // Optionally, immediately trigger navigation if desired, or wait for button tap
+                        // self.shouldNavigateToNewCardView = true
+                    case .failure(let error):
+                        print("Card generation failed: \(error.localizedDescription)")
+                        self.cardGenerationStatus = .none
+                        // Optionally, show an alert to the user
+                    }
+                }
+                .environmentObject(snapDexManager)
+                .environmentObject(ThemeManager())
             }
+        }
+    }
+
+    // Computed property for the status button's view
+    @ViewBuilder
+    private var statusButton: some View {
+        Button(action: {
+            switch cardGenerationStatus {
+            case .ready:
+                if newlyGeneratedCard != nil {
+                    print("Status button tapped: New card ready! Triggering navigation.")
+                    shouldNavigateToNewCardView = true
+                    // Status and newlyGeneratedCard will be reset by CardView's onDismiss or NavLink's isActive binding
+                } else {
+                    print("Status button tapped: Ready, but no card data available.")
+                    cardGenerationStatus = .none // Reset if something went wrong
+                }
+            case .awaitingAPI, .none:
+                // Button does nothing in these states, or you could show an alert/info.
+                print("Status button tapped: Status is \(cardGenerationStatus). No action.")
+                break
+            }
+        }) {
+            HStack {
+                if let imageName = cardGenerationStatus.systemImageName {
+                    Image(systemName: imageName)
+                }
+                if !cardGenerationStatus.label.isEmpty {
+                    Text(cardGenerationStatus.label)
+                }
+            }
+            .padding(cardGenerationStatus == .none ? 10 : 12) // Smaller padding for .none state
+            .background(cardGenerationStatus.color)
+            .foregroundColor(cardGenerationStatus == .awaitingAPI ? .black : .white) // Yellow bg needs dark text
+            .if(cardGenerationStatus == .none) { view in
+                view.clipShape(Circle())
+            }
+            .if(cardGenerationStatus != .none) { view in
+                view.clipShape(Capsule())
+            }
+            .shadow(radius: 5)
+            .animation(.spring(), value: cardGenerationStatus) // Animate status changes
+        }
+        .disabled(cardGenerationStatus == .awaitingAPI || (cardGenerationStatus == .none && cardGenerationStatus.label.isEmpty)) // Disable if awaiting or if .none is just a dot // Potentially disable if .none is just a grey dot with no action
+    }
+}
+
+// Helper for conditional modifiers
+extension View {
+    @ViewBuilder func `if`<Content: View>(_ condition: Bool, transform: (Self) -> Content) -> some View {
+        if condition {
+            transform(self)
+        } else {
+            self
         }
     }
 }
