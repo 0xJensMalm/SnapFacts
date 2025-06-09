@@ -52,8 +52,9 @@ struct CardRecipe {
     /// Core templates with inline placeholders {{placeholder}}
     private static let templates: [Part : String] = [
         .title : """
-        Generate a single, unique, pronounceable, whimsical, creature-like name for a monster based on {{subject}}. The name should be in a playful, Pokémon-esque style (examples: "Bubblor", "Fiznox", "Sparkleef", "Clunkett"). Do NOT use descriptive or imposing names (examples: "Frost Prowler", "Steel Guardian"). Do NOT use existing Pokémon names. Output ONLY the name itself, without any other text or quotation marks.
+        The title should be the name of the {{subject}} adding Japanese-inspired suffixes or phonetic transformations to make it sound like a collectible monster. The result should be fun, pronounceable, and still hint at the original word. Examples include: ‘Fridgoko’, ‘Sodachu’, ‘Poweruplu’, ‘Microwavax’. Keep the names short (2–4 syllables) and mix in common Pokémon-style suffixes like -chu, -ko, -mon, -zu, -tan, -pu, -ra, -bo, or -nix. Output ONLY the name itself, without any other text or quotation marks.
         """,
+
 
         .artPrompt : """
         Digital painting in the style of a modern concept artist, consistent across all images. Generate only one image. Depict a single, primary subject: a whimsical creature inspired by {{visualTraits}}. The creature must be easily recognizable and the main focus. The creature is in its natural environment, which should be complementary but not distracting. The background must be clean, simple, and uncluttered. IMPORTANT: The generated image itself should NOT contain any frames, borders, or card-like elements; it should be a clean illustration of the subject in its environment, suitable for later placement onto a trading card. The overall artistic style should be cute, charming, with clear lines and appealing colors. Do not generate multiple sketches, variations, or panels.

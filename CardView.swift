@@ -72,9 +72,9 @@ struct CardView: View {
 
     var body: some View {
         GeometryReader { geometry in
-            let cardWidth = geometry.size.width * 0.8
+            let cardWidth = geometry.size.width * 0.95
             let baseCardWidth: CGFloat = 320
-            let baseCardHeight: CGFloat = 500
+            let baseCardHeight: CGFloat = 600
             let cardAspectRatio = baseCardHeight / baseCardWidth
             let cardHeight = cardWidth * cardAspectRatio
             let scale = cardWidth / baseCardWidth
@@ -122,7 +122,17 @@ struct CardView: View {
                 }
                 // Horizontal padding removed, now controlled by cardFrontFace
                 .frame(height: 225 * scale) // Image frame height (can be increased if needed due to more space)
-                .padding(.bottom, 5 * scale) // FURTHER REDUCED padding after image, before info bar
+                .padding(.bottom, 5 * scale) // Padding after image
+
+                // NEW: Description Text Section
+                Text(cardContent.description)
+                    .font(Font.system(size: 12 * scale, weight: .regular))
+                    .foregroundColor(themeManager.currentTheme.idNameText) // Using a common text color, adjust if needed
+                    .multilineTextAlignment(.leading)
+                    .padding(.horizontal, 10 * scale) // Horizontal padding to align with other content
+                    .padding(.vertical, 5 * scale) // Vertical padding around the description
+                    .frame(maxWidth: .infinity, alignment: .leading) // Ensure it takes available width and aligns leading
+                    .fixedSize(horizontal: false, vertical: true) // Allow text to wrap
 
                 // 3. Info Bar - Redesigned with StatLabelView
                 HStack(spacing: 5 * scale) { // Spacing between StatLabelViews
@@ -201,7 +211,7 @@ struct CardView: View {
                 
                 Spacer() // Pushes all content to the top if card is taller
             }
-            .padding(EdgeInsets(top: 20 * scale, leading: 15 * scale, bottom: 20 * scale, trailing: 15 * scale)) // Apply consistent padding to cardFrontFace
+            .padding(EdgeInsets(top: 10 * scale, leading: 8 * scale, bottom: 10 * scale, trailing: 8 * scale)) // Apply consistent padding to cardFrontFace
             .frame(maxWidth: .infinity, maxHeight: .infinity) // cardFrontFace fills its parent (cardStructure)
 
             // Card structure for flipping
