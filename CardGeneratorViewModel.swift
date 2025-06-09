@@ -131,10 +131,13 @@ final class CardGeneratorViewModel: ObservableObject {
         guard let currentOpenAIService = openAI else {
             print("[ViewModel] Cannot generate card: OpenAIService is not initialized.")
             let errorMsg = "OpenAI Service not available. Please check setup or restart the app."
-            if !phaseIsServiceInitError() { // If not already in an init error, set one.
-                 self.phase = .failure(errorMsg)
+            // Ensure the completion handler is called asynchronously to allow UI to update first
+            DispatchQueue.main.async {
+                if !self.phaseIsServiceInitError() { // If not already in an init error, set one.
+                     self.phase = .failure(errorMsg)
+                }
+                completion(.failure(GeneratorError(message: errorMsg)))
             }
-            completion(.failure(GeneratorError(message: errorMsg)))
             return
         }
 

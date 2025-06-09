@@ -64,7 +64,11 @@ struct SnapDexView: View {
             }
             .background(
                 // NavigationLink for the new card, activated programmatically
-                NavigationLink(destination: CardView(cardContent: newlyGeneratedCard ?? SampleCardData.vansOldSkool, isFromSnapDex: false, onDismiss: { newlyGeneratedCard = nil; cardGenerationStatus = .none }),
+                NavigationLink(destination: CardView(cardContent: newlyGeneratedCard ?? SampleCardData.vansOldSkool, isFromSnapDex: false, onDismiss: {
+                    print("[SnapDexView] CardView onDismiss (from NavigationLink): Called. Current status: \(self.cardGenerationStatus). Resetting newlyGeneratedCard and status to .none.")
+                    self.newlyGeneratedCard = nil
+                    self.cardGenerationStatus = .none
+                }),
                                isActive: $shouldNavigateToNewCardView) {
                     EmptyView()
                 }
@@ -72,11 +76,12 @@ struct SnapDexView: View {
         }
         .navigationTitle("SnapDex")
         .sheet(isPresented: $showingCardGenerationView, onDismiss: {
-            // If the sheet is dismissed manually *before* card generation completes,
-            // reset status if it was .awaitingAPI.
-            if cardGenerationStatus == .awaitingAPI {
-                cardGenerationStatus = .none
-            }
+            print("[SnapDexView] CameraView Sheet: onDismiss called. Current status: \(self.cardGenerationStatus).")
+            // This onDismiss is called when CameraView dismisses itself or is manually dismissed.
+            // We no longer want to automatically reset .awaitingAPI to .none here,
+            // as failures should keep the button yellow (processing).
+            // If the user manually dismisses CameraView *before* confirming a picture,
+            // the status will remain .awaitingAPI, and they can tap the yellow button to try again.
         }) {
                 // This is where you would present your Camera/Card Generation View
                 // For now, let's use a placeholder or your existing CardGenerationView if it's ready
@@ -85,14 +90,15 @@ struct SnapDexView: View {
                     showingCardGenerationView = false // Dismiss the sheet first
                     switch result {
                     case .success(let card):
+                        print("[SnapDexView] CameraView Completion: .success. Current status: \(self.cardGenerationStatus). Setting newlyGeneratedCard and status to .ready.")
                         self.newlyGeneratedCard = card
                         self.cardGenerationStatus = .ready
                         // Optionally, immediately trigger navigation if desired, or wait for button tap
                         // self.shouldNavigateToNewCardView = true
                     case .failure(let error):
-                        print("Card generation failed: \(error.localizedDescription)")
-                        self.cardGenerationStatus = .none
-                        // Optionally, show an alert to the user
+                        print("[SnapDexView] CameraView Completion: .failure. Error: \(error.localizedDescription). Current status: \(self.cardGenerationStatus). Status will NOT be changed here.")
+                        // Do not change cardGenerationStatus here. It should remain .awaitingAPI.
+                        // self.cardGenerationStatus = .none // Removed this line
                     }
                 }
                 .environmentObject(snapDexManager)
