@@ -31,7 +31,7 @@ struct AnalysePrompt {
     
     Return ONE minified JSON object – no extra text – with exactly SIX keys:
       • subject  – short noun phrase, lowercase articles removed (e.g. "Birch tree", "Vans Old Skool shoes")
-      • visualTraits – concise, comma-separated appearance notes (shape, colors, textures)
+      • visualTraits – concise, comma-separated appearance notes (e.g., 'fluffy, white, with large blue eyes, often found in snowy plains' or 'metallic, sleek, with glowing red stripes, typically seen in futuristic cityscapes'). Include key physical characteristics and hints about its natural environment.
       • type      – best-fit among: Natural 🌿, Tech ⚙️, Fire 🔥, Water 💧, Earth 🧱, Air 💨, Electric ⚡️, Spirit 🫥 (case-sensitive, include the emoji in the value)
       • strength  – integer 0-100 (raw power)
       • stamina   – integer 0-100 (endurance)
@@ -52,11 +52,11 @@ struct CardRecipe {
     /// Core templates with inline placeholders {{placeholder}}
     private static let templates: [Part : String] = [
         .title : """
-        Invent a short, whimsical, creature-like name for a monster based on {{subject}}. Aim for a playful, Pokémon-esque style (e.g., "Bubblor", "Fiznox", "Sparkleef", "Clunkett") rather than descriptive or imposing names (e.g., "Frost Prowler", "Steel Guardian"). The name should be a single, unique, pronounceable word. Avoid existing Pokémon names.
+        Generate a single, unique, pronounceable, whimsical, creature-like name for a monster based on {{subject}}. The name should be in a playful, Pokémon-esque style (examples: "Bubblor", "Fiznox", "Sparkleef", "Clunkett"). Do NOT use descriptive or imposing names (examples: "Frost Prowler", "Steel Guardian"). Do NOT use existing Pokémon names. Output ONLY the name itself, without any other text or quotation marks.
         """,
 
         .artPrompt : """
-        A cute monster. {{visualTraits}}. Simple background.
+        Digital painting in the style of a modern concept artist, consistent across all images. Generate only one image. Depict a single, primary subject: a whimsical creature inspired by {{visualTraits}}. The creature must be easily recognizable and the main focus. The creature is in its natural environment, which should be complementary but not distracting. The background must be clean, simple, and uncluttered. IMPORTANT: The generated image itself should NOT contain any frames, borders, or card-like elements; it should be a clean illustration of the subject in its environment, suitable for later placement onto a trading card. The overall artistic style should be cute, charming, with clear lines and appealing colors. Do not generate multiple sketches, variations, or panels.
         """,
 
         .statsJSON : { () -> String in

@@ -526,6 +526,7 @@ final class OpenAIService {
             let size: String
             let quality: String?
             let style: String?
+            let response_format: String? // Added for b64_json
         }
         
         let sizeString: String
@@ -540,7 +541,8 @@ final class OpenAIService {
         let payloadObject = Payload(
             model: self.imageModel, prompt: prompt, n: 1, size: sizeString,
             quality: self.imageModel == "dall-e-3" ? quality : nil,
-            style: self.imageModel == "dall-e-3" ? style : nil
+            style: self.imageModel == "dall-e-3" ? style : nil,
+            response_format: (self.imageModel == "dall-e-3" || self.imageModel.lowercased().contains("dall-e-4")) ? "b64_json" : nil // Request b64_json for DALL-E 3 and dall-e-4. gpt-image-1 defaults to URL on this endpoint.
         )
         
         let encodedPayload = try JSONEncoder().encode(payloadObject)
@@ -562,19 +564,49 @@ final class OpenAIService {
             throw OpenAIError.httpError(code: httpResponse.statusCode, message: serverMsg)
         }
         
-        struct GenerationReply: Decodable { struct Item: Decodable { let url: URL }; let data: [Item] }
+        struct GenerationReply: Decodable {
+            struct Item: Decodable {
+                let url: URL? // Made optional
+                let b64_json: String? // Added for base64 image data
+            }
+            let data: [Item]
+        }
         
         do {
-            let reply = try JSONDecoder().decode(GenerationReply.self, from: data)
-            guard let outURL = reply.data.first?.url else {
-                print("[OpenAIService]     ERROR: no URL returned from text-to-image")
-                throw OpenAIError.noImageReturned
+            let decoder = JSONDecoder()
+            let reply = try decoder.decode(GenerationReply.self, from: data)
+
+            if let item = reply.data.first {
+                if let base64String = item.b64_json {
+                    // Handle b64_json response
+                    guard let imageData = Data(base64Encoded: base64String) else {
+                        print("[OpenAIService]     ERROR: Failed to decode base64 image string.")
+                        throw OpenAIError.unexpectedResponseFormat // Consider adding a specific .base64DecodingFailed error
+                    }
+                    
+                    // Save to a temporary file
+                    let tempDir = FileManager.default.temporaryDirectory
+                    // Assuming PNG format based on common API responses for b64_json and user's log ("output_format": "png")
+                    let fileName = UUID().uuidString + ".png" 
+                    let fileURL = tempDir.appendingPathComponent(fileName)
+                    
+                    try imageData.write(to: fileURL)
+                    print("[OpenAIService]     Success → saved b64_json image to temporary file: \(fileURL.path)")
+                    return fileURL
+                } else if let outURL = item.url {
+                    // Handle existing URL response
+                    print("[OpenAIService]     Success → generated image URL: \(outURL.absoluteString)")
+                    return outURL
+                }
             }
-            print("[OpenAIService]     Success → generated image URL: \(outURL.absoluteString)")
-            return outURL
+            
+            // If neither b64_json nor url is found, or data array is empty
+            let responseDetails = String(data: data, encoding: .utf8)?.prefix(500) ?? "Unable to read response data"
+            print("[OpenAIService]     ERROR: no image data (b64_json or url) returned from text-to-image. Response snippet: \(responseDetails)")
+            throw OpenAIError.noImageReturned
         } catch {
             let raw = String(data: data, encoding: .utf8) ?? "<invalid UTF8>"
-            print("[OpenAIService]     JSON decode error (text-to-image): \(error). Response:\n\(raw)")
+            print("[OpenAIService]     JSON decode error (text-to-image): \(error). Response (first 500 chars):\n\(raw.prefix(500))")
             throw OpenAIError.jsonDecodingError(error, raw)
         }
     }
