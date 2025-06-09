@@ -264,77 +264,88 @@ struct CardView: View {
                                     self.accumulatedYRotationAmount = self.accumulatedYRotationAmount.truncatingRemainder(dividingBy: 360)
                                 }
                         )
-                    Spacer()
-                    Button(action: {
-                        withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
-                            isFlipped.toggle()
-                            // Reset drag rotation when flipping with button for a cleaner flip
-                            accumulatedYRotationAmount = 0
-                            currentYRotationAmount = 0
-                        }
-                    }) {
-                        Image(systemName: "arrow.left.arrow.right.circle.fill")
-                            .font(.largeTitle) // Consider scaling font or using relative size
-                            .padding() // Consider scaling padding
-                            .foregroundColor(themeManager.currentTheme.tagText)
-                            .background(themeManager.currentTheme.tagBackground.opacity(0.8))
-                            .clipShape(Circle())
-                            .shadow(radius: max(2,5 * scale)) // Consider scaling shadow
-                    }
-                    .padding(.bottom, geometry.size.height * 0.05) // Scaled bottom padding for button
-                }
-            }
-            // The ZStack above will fill the GeometryReader by default
+                    // OLD FLIP BUTTON REMOVED FROM HERE
+                    Spacer() // This Spacer pushes the button bar to the bottom
 
-            // Buttons Section
-            VStack {
-                Spacer() // Pushes buttons to the bottom
+                    // NEW Buttons HStack - Now correctly placed within the main VStack
+                    HStack(spacing: 20 * scale) { // Adjust spacing as needed
+                // Left Button (Discard or Release)
                 if isFromSnapDex {
                     Button(action: {
                         snapDexManager.releaseCard(cardContent)
                         presentationMode.wrappedValue.dismiss() // Dismiss after releasing
                     }) {
-                        Text("Release from SnapDex")
-                            .padding()
-                            .frame(maxWidth: .infinity)
-                            .background(Color.red)
+                        Image(systemName: "xmark")
+                            .font(.system(size: 24 * scale, weight: .bold))
+                            .padding(15 * scale)
                             .foregroundColor(.white)
-                            .cornerRadius(10)
+                            .background(Color.red)
+                            .clipShape(Circle())
+                            .shadow(color: .black.opacity(0.3), radius: 3 * scale, x: 0, y: 2 * scale)
                     }
-                    .padding([.horizontal, .bottom])
                 } else {
-                    HStack {
-                        Button(action: {
-                            // Action for Discard - typically dismiss the view
-                            presentationMode.wrappedValue.dismiss()
-                        }) {
-                            Text("Discard")
-                                .padding()
-                                .frame(maxWidth: .infinity)
-                                .background(Color.gray)
-                                .foregroundColor(.white)
-                                .cornerRadius(10)
-                        }
-
-                        Button(action: {
-                            snapDexManager.addCard(cardContent)
-                            // Optionally, disable button or show feedback
-                            // presentationMode.wrappedValue.dismiss() // Or dismiss after keeping
-                        }) {
-                            Text(snapDexManager.isCardCollected(cardContent) ? "Collected" : "Keep in SnapDex")
-                                .padding()
-                                .frame(maxWidth: .infinity)
-                                .background(snapDexManager.isCardCollected(cardContent) ? Color.green.opacity(0.5) : Color.green)
-                                .foregroundColor(.white)
-                                .cornerRadius(10)
-                        }
-                        .disabled(snapDexManager.isCardCollected(cardContent))
+                    Button(action: {
+                        presentationMode.wrappedValue.dismiss()
+                    }) {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 24 * scale, weight: .bold))
+                            .padding(15 * scale)
+                            .foregroundColor(.white)
+                            .background(Color.red)
+                            .clipShape(Circle())
+                            .shadow(color: .black.opacity(0.3), radius: 3 * scale, x: 0, y: 2 * scale)
                     }
-                    .padding([.horizontal, .bottom])
+                }
+
+                Spacer()
+
+                // Center Button (Flip)
+                Button(action: {
+                    withAnimation(.spring()) {
+                        isFlipped.toggle()
+                        accumulatedYRotationAmount = 0
+                        currentYRotationAmount = 0
+                    }
+                }) {
+                    Image(systemName: "arrow.left.arrow.right.circle.fill")
+                        .font(.system(size: 30 * scale, weight: .medium)) // Adjusted size slightly
+                        .padding(12 * scale) // Adjusted padding slightly
+                        .foregroundColor(themeManager.currentTheme.tagText)
+                        .background(themeManager.currentTheme.tagBackground.opacity(0.8))
+                        .clipShape(Circle())
+                        .shadow(color: .black.opacity(0.4), radius: max(2,4 * scale), x: 0, y: max(1,2 * scale)) // Adjusted shadow
+                }
+
+                Spacer()
+
+                // Right Button (Keep - only if not from SnapDex)
+                if !isFromSnapDex {
+                    Button(action: {
+                        snapDexManager.addCard(cardContent)
+                        presentationMode.wrappedValue.dismiss() // Dismiss after collecting
+                    }) {
+                        Image(systemName: "hand.thumbsup.fill")
+                            .font(.system(size: 24 * scale, weight: .bold))
+                            .padding(15 * scale)
+                            .foregroundColor(.white)
+                            .background(snapDexManager.isCardCollected(cardContent) ? Color.green.opacity(0.7) : Color.green)
+                            .clipShape(Circle())
+                            .shadow(color: .black.opacity(0.3), radius: 3 * scale, x: 0, y: 2 * scale)
+                    }
+                    .disabled(snapDexManager.isCardCollected(cardContent))
+                } else {
+                    // Placeholder to maintain balance if needed, or rely on Spacers
+                    // For true centering of Flip when Keep is not present, ensure this side has equal 'flex'
+                    // An empty Spacer or a clear rectangle can work if Spacers alone don't center perfectly.
+                    // For now, let the two Spacers handle it.
+                    Spacer().frame(width: (24 * scale) + (30 * scale)) // Approximate width of a button to help balance if only 2 buttons active
                 }
             }
-            .frame(width: geometry.size.width, height: geometry.size.height) // Ensure buttons are within geo
-
+            .frame(maxWidth: .infinity) // Ensure HStack expands to allow Spacers to work
+            .padding(.horizontal, 20 * scale) // Horizontal padding for the button bar
+            .padding(.bottom, geometry.size.height * 0.03) // Bottom padding for the button bar
+                } // This closes the main VStack
+            } // This closes the ZStack with the black background
         }
         // .environmentObject(themeManager) // Already provided by parent or App
         .onDisappear {
