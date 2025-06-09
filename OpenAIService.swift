@@ -239,11 +239,60 @@ final class OpenAIService {
         }
     }
     
-    func analyzeImageWithVisionChat(
-        _ image: UIImage,
-        prompt: String? = nil
-    ) async throws -> AnalysisResult {
-        print("[OpenAIService] → analyzeImageWithVisionChat START (model: \(self.chatModel))")
+    // MARK: - New Pokémon-Style Card Data Generation Pipeline
+
+    /// New orchestrator method for the Pokémon-style card generation.
+    /// 1. Analyzes image for base details (subject, type, stats) using vision.
+    /// 2. Generates a title using a text prompt.
+    /// 3. Generates a stats JSON string using a text prompt.
+    /// 4. Renders an art prompt string locally.
+    public func generateCardDataFromImage(image: UIImage) async throws -> (title: String, statsJSON: String, artPrompt: String, analysisData: InitialAnalysisData) {
+        print("[OpenAIService] → generateCardDataFromImage START")
+
+        // Step 1: Analyze image for base details
+        print("[OpenAIService]     Step 1: Analyzing image for initial data...")
+        let initialAnalysis = try await analyzeImageForInitialData(image)
+        print("[OpenAIService]     Step 1: DONE. Subject: \(initialAnalysis.subject), Type: \(initialAnalysis.type)")
+
+        // Prepare payload for prompt rendering - converting InitialAnalysisData to [String: Any]
+        // This is needed because CardRecipe.render expects [String: Any]
+        let analysisPayload: [String: Any] = [
+            "subject": initialAnalysis.subject,
+            "visualTraits": initialAnalysis.visualTraits,
+            "type": initialAnalysis.type,
+            "strength": initialAnalysis.strength,
+            "stamina": initialAnalysis.stamina,
+            "agility": initialAnalysis.agility
+        ]
+
+        // Step 2: Generate Title
+        print("[OpenAIService]     Step 2: Generating title...")
+        let titleSystemPrompt = OpenAIPrompts.shared.cardPrompt(.title, with: analysisPayload)
+        let generatedTitle = try await generateTextFromPrompt(titleSystemPrompt)
+        print("[OpenAIService]     Step 2: DONE. Title: \(generatedTitle)")
+
+        // Step 3: Generate Stats JSON
+        print("[OpenAIService]     Step 3: Generating stats JSON...")
+        let statsSystemPrompt = OpenAIPrompts.shared.cardPrompt(.statsJSON, with: analysisPayload)
+        let generatedStatsJSON = try await generateTextFromPrompt(statsSystemPrompt)
+        print("[OpenAIService]     Step 3: DONE. Stats JSON: \(generatedStatsJSON.prefix(100))...")
+
+        // Step 4: Render Art Prompt
+        print("[OpenAIService]     Step 4: Rendering art prompt...")
+        let artPromptString = OpenAIPrompts.shared.cardPrompt(.artPrompt, with: analysisPayload)
+        print("[OpenAIService]     Step 4: DONE. Art Prompt: \(artPromptString.prefix(100))...")
+
+        print("[OpenAIService] → generateCardDataFromImage END")
+        return (title: generatedTitle, statsJSON: generatedStatsJSON, artPrompt: artPromptString, analysisData: initialAnalysis)
+    }
+
+    /// Renamed and repurposed from analyzeImageWithVisionChat.
+    /// This method now specifically uses OpenAIPrompts.shared.analysePrompt
+    /// and decodes the result into InitialAnalysisData.
+    private func analyzeImageForInitialData(
+        _ image: UIImage
+    ) async throws -> InitialAnalysisData {
+        print("[OpenAIService] → analyzeImageForInitialData START (model: \(self.chatModel))")
         
         let base64String: String = try await Task.detached(priority: .userInitiated) {
             guard let jpegData = image.jpegData(compressionQuality: 0.7) else {
@@ -260,46 +309,68 @@ final class OpenAIService {
         request.setValue("Bearer \(self.apiKey)", forHTTPHeaderField: "Authorization") // Use instance apiKey
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
-        struct VisionContent: Encodable {
-            let type: String
-            let text: String?
-            let image_url: ImageURL?
-            
-            struct ImageURL: Encodable {
+        // Define parts for the multimodal message content
+        struct TextContentPart: Encodable {
+            let type: String = "text"
+            let text: String
+        }
+
+        struct ImageURLContentPart: Encodable {
+            let type: String = "image_url"
+            struct ImageURLData: Encodable {
                 let url: String
                 let detail: String?
-                init(url: String, detail: String? = "auto") {
-                    self.url = url
-                    self.detail = detail
-                }
             }
-            
-            static func plainText(_ t: String) -> VisionContent { .init(type: "text", text: t, image_url: nil) }
-            static func visionImage(base64: String, detail: String = "auto") -> VisionContent {
-                .init(type: "image_url", text: nil, image_url: .init(url: "data:image/jpeg;base64,\(base64)", detail: detail))
+            let image_url: ImageURLData
+        }
+
+        // Enum to hold different content part types
+        enum MessageContentPart: Encodable {
+            case text(TextContentPart)
+            case imageUrl(ImageURLContentPart)
+
+            func encode(to encoder: Encoder) throws {
+                var container = encoder.singleValueContainer()
+                switch self {
+                case .text(let textPart):
+                    try container.encode(textPart)
+                case .imageUrl(let imageUrlPart):
+                    try container.encode(imageUrlPart)
+                }
             }
         }
         
-        struct Message: Encodable { let role: String; let content: [VisionContent] }
+        struct Message: Encodable {
+            let role: String
+            let content: [MessageContentPart]
+        }
+
         struct ResponseFormat: Encodable { let type: String }
         struct ChatPayload: Encodable {
             let model: String
             let temperature: Double
             let messages: [Message]
-            let response_format: ResponseFormat?
+            let response_format: ResponseFormat? // Make optional if not always used
             let max_tokens: Int?
         }
         
-        let finalPrompt = prompt ?? OpenAIPrompts.shared.defaultTextPrompt
+        let systemMessageText = "You are an expert assistant that analyzes images and ALWAYS returns a response in valid, minified JSON format as specified by the user. Do not include any markdown fences like ```json or ``` around the JSON output."
+        let userPromptText = OpenAIPrompts.shared.analysePrompt
+
         let payload = ChatPayload(
             model: self.chatModel,
-            temperature: 0.2,
+            temperature: 0.2, // Low temperature for predictable JSON
             messages: [
-                .init(role: "system", content: [.plainText("You are an expert assistant that analyzes images and ALWAYS returns a response in valid, minified JSON format as specified by the user. Do not include any markdown fences like ```json or ``` around the JSON output.")]),
-                .init(role: "user", content: [.plainText(finalPrompt), .visionImage(base64: base64String, detail: "auto")])
+                Message(role: "system", content: [
+                    .text(TextContentPart(text: systemMessageText))
+                ]),
+                Message(role: "user", content: [
+                    .text(TextContentPart(text: userPromptText)),
+                    .imageUrl(ImageURLContentPart(image_url: .init(url: "data:image/jpeg;base64,\(base64String)", detail: "auto")))
+                ])
             ],
-            response_format: .init(type: "json_object"),
-            max_tokens: 2048
+            response_format: ResponseFormat(type: "json_object"),
+            max_tokens: 2048 // Adjust as needed
         )
         
         let encodedPayload = try JSONEncoder().encode(payload)
@@ -359,13 +430,78 @@ final class OpenAIService {
         }
         
         do {
-            let analysis = try decoder.decode(AnalysisResult.self, from: jsonData)
-            print("[OpenAIService]     Success → AnalysisResult(title: \(analysis.title))")
-            return analysis
+            let decodedResult = try decoder.decode(InitialAnalysisData.self, from: jsonData)
+            print("[OpenAIService]     Successfully decoded JSON into InitialAnalysisData.")
+            return decodedResult
         } catch {
             let raw = String(data: jsonData, encoding: .utf8) ?? "<invalid UTF8>"
             print("[OpenAIService]     ERROR: Failed to decode AnalysisResult: \(error). JSON was:\n\(raw)")
             throw OpenAIError.jsonDecodingError(error, raw)
+        }
+    }
+
+    /// Private helper to make a text-only chat completion request to OpenAI.
+    private func generateTextFromPrompt(_ systemPrompt: String) async throws -> String {
+        print("[OpenAIService] → generateTextFromPrompt START (model: \(self.chatModel))")
+        print("[OpenAIService]     System Prompt: \(systemPrompt.prefix(200))...")
+
+        let endpoint = "https://api.openai.com/v1/chat/completions"
+        var request = URLRequest(url: URL(string: endpoint)!)
+        request.httpMethod = "POST"
+        request.setValue("Bearer \(self.apiKey)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        let payload: [String: Any] = [
+            "model": self.chatModel,
+            "messages": [
+                ["role": "system", "content": systemPrompt]
+            ],
+            "max_tokens": 500 // Adjust as needed for title/stats generation
+        ]
+
+        let jsonData = try JSONSerialization.data(withJSONObject: payload)
+        request.httpBody = jsonData
+
+        let (responseData, response) = try await session.data(for: request)
+
+        guard let httpResponse = response as? HTTPURLResponse else {
+            print("[OpenAIService]     ERROR: Invalid response from server (not HTTPURLResponse)")
+            throw OpenAIError.invalidResponse
+        }
+
+        print("[OpenAIService]     HTTP Status Code: \(httpResponse.statusCode)")
+
+        if httpResponse.statusCode != 200 {
+            let serverText = String(data: responseData, encoding: .utf8) ?? "<unreadable data>"
+            print("[OpenAIService]     ERROR \(httpResponse.statusCode): \(serverText)")
+            throw OpenAIError.httpError(code: httpResponse.statusCode, message: serverText)
+        }
+
+        // Parse the response JSON to extract the text content
+        struct OpenAICompletionResponse: Decodable {
+            struct Choice: Decodable {
+                struct Message: Decodable {
+                    let role: String?
+                    let content: String
+                }
+                let message: Message
+            }
+            let choices: [Choice]
+        }
+
+        do {
+            let openAIResponse = try JSONDecoder().decode(OpenAICompletionResponse.self, from: responseData)
+            guard let firstChoiceContent = openAIResponse.choices.first?.message.content else {
+                print("[OpenAIService]     ERROR: No content found in OpenAI response choices.")
+                throw OpenAIError.visionChatDidNotReturnContent
+            }
+            print("[OpenAIService]     Successfully extracted text content: \(firstChoiceContent.prefix(100))...")
+            print("[OpenAIService] → generateTextFromPrompt END")
+            return firstChoiceContent.trimmingCharacters(in: .whitespacesAndNewlines)
+        } catch {
+            let rawResponseString = String(data: responseData, encoding: .utf8) ?? "<unreadable data>"
+            print("[OpenAIService]     ERROR: Failed to decode OpenAI response JSON or extract content. Error: \(error.localizedDescription). Raw response: \(rawResponseString.prefix(500))")
+            throw OpenAIError.jsonDecodingError(error, rawResponseString)
         }
     }
     

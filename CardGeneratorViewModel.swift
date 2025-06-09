@@ -138,70 +138,82 @@ final class CardGeneratorViewModel: ObservableObject {
 
         Task {
             do {
-                phase = .generating(progress: "Analyzing image with \(selectedTextModel)...")
+                phase = .generating(progress: "Generating card data with \(selectedTextModel)...")
                 
-                let visionPrompt = OpenAIPrompts.shared.defaultTextPrompt
-                let analysisResult = try await currentOpenAIService.analyzeImageWithVisionChat(uiImage, prompt: visionPrompt)
+                // Step 1: Get all card data (title, stats JSON, art prompt) from the new service method
+                let (title, statsJSON, artPrompt, analysisData) = try await currentOpenAIService.generateCardDataFromImage(image: uiImage)
+                print("[ViewModel] Received card data. Title: \(title), Art Prompt: \(artPrompt.prefix(100))...")
 
-                let imageStyleTemplate = OpenAIPrompts.shared.defaultImagePrompt
-                
-                guard !analysisResult.detailedSubjectDescription.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines).isEmpty else {
-                    print("[ViewModel] Error: detailedSubjectDescription from analysis is empty.")
-                    throw OpenAIService.OpenAIError.unexpectedResponseFormat
-                }
-                
-                let finalImageGenPrompt = imageStyleTemplate.replacingOccurrences(
-                    of: "[SUBJECT_DESCRIPTION]",
-                    with: analysisResult.detailedSubjectDescription
-                )
-
-                print("[ViewModel] Final image generation prompt: \(finalImageGenPrompt.prefix(200))...") // Log prefix
+                // Step 2: Generate image using the artPrompt
+                print("[ViewModel] Generating card art with \(selectedImageModel). Prompt: \(artPrompt.prefix(200))...")
                 phase = .generating(progress: "Generating card art with \(selectedImageModel)...")
 
                 let newImageURL = try await currentOpenAIService.generateImageFromText(
-                    prompt: finalImageGenPrompt,
+                    prompt: artPrompt, // Use the generated artPrompt directly
                     size: 1024,
-                    quality: "standard",
-                    style: "vivid"
+                    quality: "standard", // Or user-selectable options
+                    style: "vivid"       // Or user-selectable options
                 )
+                print("[ViewModel] Card art generated: \(newImageURL.absoluteString)")
 
-                let stats: [CardStatItem] = analysisResult.stats.map { stat -> CardStatItem in
-                    let value: StatValue
-                    if let intVal = Int(stat.value) {
-                        value = .int(intVal)
-                    } else {
-                        if let doubleVal = Double(stat.value) {
-                             if floor(doubleVal) == doubleVal && !stat.value.contains(".") {
-                                 value = .int(Int(doubleVal))
-                             } else {
-                                 value = .string(stat.value)
-                             }
-                        } else {
-                             value = .string(stat.value)
-                        }
-                    }
-                    return CardStatItem(category: stat.category, value: value)
-                }
+                // Step 3: Parse statsJSON and convert to [CardStatItem]
+                let stats = try parseAndConvertStats(from: statsJSON)
+                print("[ViewModel] Stats parsed and converted.")
 
+                // Step 4: Assemble CardContent
+                // For description, using visualTraits. Fallback to subject if empty.
+                let descriptionText = analysisData.visualTraits.isEmpty ? analysisData.subject : analysisData.visualTraits
+                
                 let card = CardContent(
-                    id: UUID().uuidString,
-                    title: analysisResult.title,
-                    description: analysisResult.description,
+                    id: UUID().uuidString, // Keep unique ID generation
+                    title: title,
+                    description: descriptionText, 
+                    detailedSubjectDescription: artPrompt, // Store the art prompt here
                     localImageName: newImageURL.absoluteString,
                     stats: stats
                 )
+                print("[ViewModel] CardContent assembled. Title: \(card.title)")
 
                 phase = .success(card)
 
             } catch let openAIError as OpenAIService.OpenAIError {
                 let errorMessage = errorDescription(for: openAIError)
-                print("[ViewModel] Error during card generation: \(errorMessage)")
+                print("[ViewModel] OpenAI Error during card generation: \(errorMessage)")
                 phase = .failure("OpenAI Error: \(errorMessage)")
             } catch {
                 let errorMessage = error.localizedDescription
-                print("[ViewModel] Unexpected error during card generation: \(errorMessage)")
-                phase = .failure("Unexpected error: \(errorMessage)")
+                print("[ViewModel] General Error during card generation: \(errorMessage)")
+                phase = .failure("Error: \(errorMessage)")
             }
+        }
+    }
+
+    private func parseAndConvertStats(from statsJSON: String) throws -> [CardStatItem] {
+        guard let jsonData = statsJSON.data(using: .utf8) else {
+            print("[ViewModel] Error: Could not convert statsJSON string to Data.")
+            // Consider a more specific error type or log details
+            throw OpenAIService.OpenAIError.unexpectedResponseFormat 
+        }
+        
+        do {
+            let decodedStatsContainer = try JSONDecoder().decode(StatsContainer.self, from: jsonData)
+            
+            return decodedStatsContainer.stats.map { decodedStat -> CardStatItem in
+                let value: StatValue
+                // The value from DecodedStatItem is always a String.
+                // Attempt to parse as Int; if fails, keep as String.
+                if let intVal = Int(decodedStat.value) {
+                    value = .int(intVal)
+                } else {
+                    // You could add more sophisticated parsing here if needed (e.g., for Doubles)
+                    value = .string(decodedStat.value)
+                }
+                return CardStatItem(category: decodedStat.category, value: value)
+            }
+        } catch {
+            print("[ViewModel] Error decoding statsJSON: \(error.localizedDescription). JSON received: \(statsJSON)")
+            // Propagate the error; could be a decoding error or other JSON issue
+            throw error 
         }
     }
 
