@@ -35,8 +35,8 @@ struct CardView: View {
         static func infoBarValue(scale: CGFloat) -> Font {
             Font.system(size: 9 * scale, weight: .medium, design: .default)
         }
-        static let idNumber = Font.system(size: 40, weight: .heavy, design: .default)
-        static let idName = Font.system(size: 14, weight: .medium, design: .default)
+        static let idNumber = Font.system(size: 52, weight: .heavy, design: .default)
+        static let idName = Font.system(size: 18, weight: .medium, design: .default)
         static let disclaimer = Font.system(size: 7, weight: .regular, design: .default)
         static let scanTo = Font.system(size: 10, weight: .bold, design: .default)
     }
@@ -72,7 +72,7 @@ struct CardView: View {
 
     var body: some View {
         GeometryReader { geometry in
-            let cardWidth = geometry.size.width * 0.95
+            let cardWidth = geometry.size.width * 0.85
             let baseCardWidth: CGFloat = 320
             let baseCardHeight: CGFloat = 600
             let cardAspectRatio = baseCardHeight / baseCardWidth
@@ -84,32 +84,32 @@ struct CardView: View {
             let innerFrameLineWidth = 1 * scale // Thickness of the frame line
             let qrCodeSectionSize = 75 * scale // New size for QR code section (width & height)
 
-            // NEW Card Front Face Design
-            let cardFrontFace = VStack(alignment: .center, spacing: 0) {
-                // 1. Top Header Section (Logo and Title/ID)
-                HStack(alignment: .center, spacing: 10 * scale) { // Align items vertically centered
+            // NEW Card Front Face Design - Refactored into 5 Containers
+            let cardFrontFace = VStack(alignment: .center, spacing: 12 * scale) { // Main VStask for the 5 containers
+
+                // --- Container 1: Top Header (Logo + Title/ID) ---
+                HStack(alignment: .center, spacing: 10 * scale) {
                     Image("snapFacts")
                         .resizable()
                         .scaledToFit()
-                        .frame(height: 120 * scale) // User updated logo height to 120 * scale
+                        .frame(height: 100 * scale)
 
-                    // This VStack contains the ID and Title. It's pushed to the right.
-                    VStack(alignment: .leading, spacing: 2 * scale) { // Internal text alignment is leading
-                        Text(String(format: "%03d", cardContent.displayId)) // Display card's persistent ID
+                    VStack(alignment: .leading, spacing: 4 * scale) { // Increased spacing
+                        Text(String(format: "%03d", cardContent.displayId))
                             .font(NewCardFonts.idNumber.weight(.medium))
                             .foregroundColor(themeManager.currentTheme.idNumberText)
                         Text(cardContent.title.uppercased())
                             .font(NewCardFonts.idName.weight(.semibold))
                             .foregroundColor(themeManager.currentTheme.idNameText)
                             .lineLimit(2)
-                            .fixedSize(horizontal: false, vertical: true) // Allows text to wrap
+                            .fixedSize(horizontal: false, vertical: true)
                     }
-                    .frame(maxWidth: .infinity, alignment: .trailing) // Pushes this VStack to the trailing edge of the HStack
+                    .frame(maxWidth: .infinity, alignment: .leading) // Changed alignment
+                    .padding(.leading, 15 * scale) // Added padding to create a gap
                 }
-                .padding(.top, 15 * scale) // Vertical padding for the header section
-                .padding(.bottom, 0 * scale) // MOVED IMAGE UP: No padding after header, before main image
+                .padding(.top, 10 * scale) // Padding for content within this container
 
-                // 2. Main Image Section
+                // --- Container 2: Main Image ---
                 ZStack {
                     RoundedRectangle(cornerRadius: 12 * scale)
                         .fill(themeManager.currentTheme.imageFrameBackground)
@@ -120,51 +120,47 @@ struct CardView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 10 * scale))
                         .padding(4 * scale)
                 }
-                // Horizontal padding removed, now controlled by cardFrontFace
-                .frame(height: 225 * scale) // Image frame height (can be increased if needed due to more space)
-                .padding(.bottom, 5 * scale) // Padding after image
+                .frame(height: 225 * scale) // Overall height for the image container
 
-                // NEW: Description Text Section
+                // --- Container 3: Description Text ---
                 Text(cardContent.description)
                     .font(Font.system(size: 12 * scale, weight: .regular))
-                    .foregroundColor(themeManager.currentTheme.idNameText) // Using a common text color, adjust if needed
+                    .foregroundColor(themeManager.currentTheme.idNameText)
                     .multilineTextAlignment(.leading)
-                    .padding(.horizontal, 10 * scale) // Horizontal padding to align with other content
-                    .padding(.vertical, 5 * scale) // Vertical padding around the description
-                    .frame(maxWidth: .infinity, alignment: .leading) // Ensure it takes available width and aligns leading
-                    .fixedSize(horizontal: false, vertical: true) // Allow text to wrap
+                    .padding(.horizontal, 10 * scale) // Horizontal padding for the text
+                    .padding(.vertical, 5 * scale)   // Vertical padding around the text
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .fixedSize(horizontal: false, vertical: true)
 
-                // 3. Info Bar - Redesigned with StatLabelView
-                HStack(spacing: 5 * scale) { // Spacing between StatLabelViews
+                // --- Container 4: Stats Bar ---
+                HStack(spacing: 5 * scale) {
                     ForEach(cardContent.stats) { statItem in
                         StatLabelView(category: statItem.category, value: statItem.value.displayString, theme: themeManager.currentTheme, scale: scale)
                     }
                 }
-                .padding(.horizontal, 10 * scale) // Overall horizontal padding for the info bar content
-                .padding(.vertical, 6 * scale)   // Vertical padding around the StatLabelViews, inside the info bar background
-                .background(themeManager.currentTheme.infoBarBackground) // Background for the entire info bar area
+                .padding(.horizontal, 10 * scale) // Padding for content within the stats bar background
+                .padding(.vertical, 6 * scale)   // Padding for content within the stats bar background
+                .background(themeManager.currentTheme.infoBarBackground)
                 .clipShape(RoundedRectangle(cornerRadius: 12 * scale))
-                .padding(.bottom, 20 * scale) // Increased padding between Info Bar and Bottom Section
 
-                // 4. Bottom Section
-                HStack(alignment: .center, spacing: 10 * scale) { // Align items center vertically
-                    // Left Column (New Container for FP - Centered)
-                    VStack(alignment: .center, spacing: 4 * scale) { // Changed to .center for FP box
-                        // FP Box - now directly in the VStack, will be centered
-                        RoundedRectangle(cornerRadius: 8 * scale) // Slightly larger corner radius
+                // --- Container 5: Bottom Section (FP + QR Code) ---
+                HStack(alignment: .center, spacing: 10 * scale) {
+                    // Left Column (FP Placeholder)
+                    VStack(alignment: .center, spacing: 4 * scale) {
+                        RoundedRectangle(cornerRadius: 8 * scale)
                             .fill(themeManager.currentTheme.fingerprintBackground)
-                            .frame(width: 60 * scale, height: 60 * scale) // Slightly larger FP box
+                            .frame(width: 60 * scale, height: 60 * scale)
                             .overlay(
                                 Text("FP")
-                                    .font(.system(size: 18 * scale, weight: .bold)) // Larger, bolder "FP" text
+                                    .font(.system(size: 18 * scale, weight: .bold))
                                     .foregroundColor(themeManager.currentTheme.fingerprintSymbol)
                             )
                             .onTapGesture {
                                 themeManager.cycleTheme()
                             }
                     }
-                    .padding(10 * scale) // Internal padding for the container
-                    .frame(maxWidth: .infinity, idealHeight: qrCodeSectionSize, maxHeight: qrCodeSectionSize) // Span width, match QR height
+                    .padding(10 * scale) // Internal padding for the FP container background
+                    .frame(maxWidth: .infinity, idealHeight: qrCodeSectionSize, maxHeight: qrCodeSectionSize)
                     .background(themeManager.currentTheme.bottomContainerBackground)
                     .cornerRadius(8 * scale)
 
@@ -175,39 +171,38 @@ struct CardView: View {
                             .foregroundColor(themeManager.currentTheme.scanToText)
                             .rotationEffect(.degrees(-90))
                             .fixedSize()
-                            .frame(width: 20 * scale, height: qrCodeSectionSize) // Adjusted width, match QR height
+                            .frame(width: 20 * scale, height: qrCodeSectionSize)
 
                         RoundedRectangle(cornerRadius: 4 * scale)
                             .fill(themeManager.currentTheme.qrCodePlaceholderBackground)
-                            .frame(width: qrCodeSectionSize, height: qrCodeSectionSize) // Use new QR code size
+                            .frame(width: qrCodeSectionSize, height: qrCodeSectionSize)
                             .overlay(
                                 Group {
                                     if let qrImage = generateQRCode(from: cardContent.id) {
                                         qrImage
                                             .resizable()
                                             .scaledToFit()
-                                            .padding(8 * scale) // Keep padding for consistency
+                                            .padding(8 * scale)
                                     } else {
-                                        // Fallback if QR generation fails
                                         Image(systemName: "exclamationmark.triangle.fill")
                                             .resizable()
                                             .scaledToFit()
                                             .padding(8 * scale)
-                                            .foregroundColor(.red) // Make fallback noticeable
+                                            .foregroundColor(.red)
                                     }
                                 }
                             )
 
                         Text("TRANSFER")
-                            .font(NewCardFonts.scanTo) // Use the same font as SCAN TO
-                            .foregroundColor(themeManager.currentTheme.scanToText) // Use the same color
-                            .rotationEffect(.degrees(-90)) // Same rotation
+                            .font(NewCardFonts.scanTo)
+                            .foregroundColor(themeManager.currentTheme.scanToText)
+                            .rotationEffect(.degrees(-90))
                             .fixedSize()
-                            .frame(width: 20 * scale, height: qrCodeSectionSize) // Same frame setup
+                            .frame(width: 20 * scale, height: qrCodeSectionSize)
                     }
-                    .frame(height: qrCodeSectionSize) // Ensure this HStack also respects the height
+                    .frame(height: qrCodeSectionSize) // Ensure QR section respects the height
                 }
-                .padding(.bottom, 30 * scale) // Increased bottom padding for more space
+                // The main VStack's spacing and the overall cardFrontFace padding will handle bottom spacing before the Spacer.
                 
                 Spacer() // Pushes all content to the top if card is taller
             }
@@ -238,102 +233,99 @@ struct CardView: View {
             .shadow(color: Color.black.opacity(0.15), radius: 8, x: 0, y: 4)
 
 
-            // This ZStack is for the overall screen layout, placing cardStructure and button
+            // This ZStack is for the overall screen layout, placing cardStructure and the unified button row
             ZStack {
-                Color.black // Set background to black as requested
-                    .ignoresSafeArea()
+                Color.black.ignoresSafeArea()
                 
                 VStack {
                     Spacer()
-                    cardStructure // This is the dynamically sized, backgrounded, and styled card
+                    cardStructure
                         .rotation3DEffect(
                             .degrees(currentYRotationAmount + accumulatedYRotationAmount + (isFlipped ? 180 : 0)),
-                            axis: (x: 0, y: 1, z: 0), // Yaw (around Y-axis)
+                            axis: (x: 0, y: 1, z: 0),
                             perspective: 0.3
                         )
                         .gesture(
                             DragGesture(minimumDistance: 0)
                                 .onChanged { value in
-                                    // Only allow horizontal drag to rotate around Y-axis
                                     self.currentYRotationAmount = Double(value.translation.width) * 0.5
                                 }
                                 .onEnded { value in
                                     self.accumulatedYRotationAmount += self.currentYRotationAmount
                                     self.currentYRotationAmount = 0
-                                    // Keep accumulatedYRotationAmount within -360 to 360 to prevent excessive spinning
                                     self.accumulatedYRotationAmount = self.accumulatedYRotationAmount.truncatingRemainder(dividingBy: 360)
                                 }
                         )
                     Spacer()
-                    Button(action: {
-                        withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
-                            isFlipped.toggle()
-                            // Reset drag rotation when flipping with button for a cleaner flip
-                            accumulatedYRotationAmount = 0
-                            currentYRotationAmount = 0
-                        }
-                    }) {
-                        Image(systemName: "arrow.left.arrow.right.circle.fill")
-                            .font(.largeTitle) // Consider scaling font or using relative size
-                            .padding() // Consider scaling padding
-                            .foregroundColor(themeManager.currentTheme.tagText)
-                            .background(themeManager.currentTheme.tagBackground.opacity(0.8))
-                            .clipShape(Circle())
-                            .shadow(radius: max(2,5 * scale)) // Consider scaling shadow
-                    }
-                    .padding(.bottom, geometry.size.height * 0.05) // Scaled bottom padding for button
-                }
-            }
-            // The ZStack above will fill the GeometryReader by default
 
-            // Buttons Section
-            VStack {
-                Spacer() // Pushes buttons to the bottom
-                if isFromSnapDex {
-                    Button(action: {
-                        snapDexManager.releaseCard(cardContent)
-                        presentationMode.wrappedValue.dismiss() // Dismiss after releasing
-                    }) {
-                        Text("Release from SnapDex")
-                            .padding()
-                            .frame(maxWidth: .infinity)
-                            .background(Color.red)
-                            .foregroundColor(.white)
-                            .cornerRadius(10)
-                    }
-                    .padding([.horizontal, .bottom])
-                } else {
-                    HStack {
-                        Button(action: {
-                            // Action for Discard - typically dismiss the view
-                            presentationMode.wrappedValue.dismiss()
-                        }) {
-                            Text("Discard")
-                                .padding()
-                                .frame(maxWidth: .infinity)
-                                .background(Color.gray)
-                                .foregroundColor(.white)
-                                .cornerRadius(10)
+                    // --- NEW UNIFIED BUTTON ROW ---
+                    HStack(spacing: 30 * scale) {
+                        // DISCARD BUTTON (X) - shows only when newly generated
+                        if !isFromSnapDex {
+                            Button(action: {
+                                presentationMode.wrappedValue.dismiss()
+                            }) {
+                                Image(systemName: "xmark")
+                                    .font(.system(size: 24 * scale, weight: .bold))
+                                    .frame(width: 50 * scale, height: 50 * scale)
+                                    .foregroundColor(.white)
+                                    .background(Color.red.opacity(0.8))
+                                    .clipShape(Circle())
+                                    .shadow(radius: max(2, 5 * scale))
+                            }
                         }
 
+                        // FLIP BUTTON - always shows
                         Button(action: {
-                            snapDexManager.addCard(cardContent)
-                            // Optionally, disable button or show feedback
-                            // presentationMode.wrappedValue.dismiss() // Or dismiss after keeping
+                            withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                                isFlipped.toggle()
+                                accumulatedYRotationAmount = 0
+                                currentYRotationAmount = 0
+                            }
                         }) {
-                            Text(snapDexManager.isCardCollected(cardContent) ? "Collected" : "Keep in SnapDex")
-                                .padding()
-                                .frame(maxWidth: .infinity)
-                                .background(snapDexManager.isCardCollected(cardContent) ? Color.green.opacity(0.5) : Color.green)
-                                .foregroundColor(.white)
-                                .cornerRadius(10)
+                            Image(systemName: "arrow.left.arrow.right.circle.fill")
+                                .font(.system(size: 32 * scale, weight: .bold))
+                                .frame(width: 60 * scale, height: 60 * scale)
+                                .foregroundColor(themeManager.currentTheme.tagText)
+                                .background(themeManager.currentTheme.tagBackground.opacity(0.8))
+                                .clipShape(Circle())
+                                .shadow(radius: max(2, 5 * scale))
                         }
-                        .disabled(snapDexManager.isCardCollected(cardContent))
+
+                        // KEEP (✓) or RELEASE (trash) BUTTON
+                        if isFromSnapDex {
+                            // RELEASE BUTTON
+                            Button(action: {
+                                snapDexManager.releaseCard(cardContent)
+                                presentationMode.wrappedValue.dismiss()
+                            }) {
+                                Image(systemName: "trash")
+                                    .font(.system(size: 24 * scale, weight: .bold))
+                                    .frame(width: 50 * scale, height: 50 * scale)
+                                    .foregroundColor(.white)
+                                    .background(Color.red.opacity(0.8))
+                                    .clipShape(Circle())
+                                    .shadow(radius: max(2, 5 * scale))
+                            }
+                        } else {
+                            // KEEP BUTTON
+                            Button(action: {
+                                snapDexManager.addCard(cardContent)
+                            }) {
+                                Image(systemName: snapDexManager.isCardCollected(cardContent) ? "checkmark.circle.fill" : "checkmark")
+                                    .font(.system(size: 24 * scale, weight: .bold))
+                                    .frame(width: 50 * scale, height: 50 * scale)
+                                    .foregroundColor(.white)
+                                    .background(snapDexManager.isCardCollected(cardContent) ? Color.green.opacity(0.5) : Color.green.opacity(0.8))
+                                    .clipShape(Circle())
+                                    .shadow(radius: max(2, 5 * scale))
+                            }
+                            .disabled(snapDexManager.isCardCollected(cardContent))
+                        }
                     }
-                    .padding([.horizontal, .bottom])
+                    .padding(.bottom, geometry.size.height * 0.05)
                 }
             }
-            .frame(width: geometry.size.width, height: geometry.size.height) // Ensure buttons are within geo
 
         }
         // .environmentObject(themeManager) // Already provided by parent or App
