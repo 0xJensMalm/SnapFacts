@@ -6,14 +6,34 @@ struct SnapDexView: View {
     @State private var cardGenerationStatus: CardGenerationStatus = .none // Manages the state of new card generation
     @State private var newlyGeneratedCard: CardContent? = nil // Holds the card from CameraView
     @State private var shouldNavigateToNewCardView: Bool = false // Triggers navigation to CardView
+    @State private var animateGradient = false
 
-    // Define grid layout: 3 columns, flexible spacing
-    let columns: [GridItem] = Array(repeating: .init(.flexible()), count: 3)
+    // Define grid layout: 2 columns, flexible spacing
+    let columns: [GridItem] = Array(repeating: .init(.flexible()), count: 2)
+
+    private var buttonText: String {
+        switch cardGenerationStatus {
+        case .none:
+            return "Catch new creature!"
+        case .awaitingAPI:
+            return "Processing..."
+        case .ready:
+            return "New Creature Captured!"
+        }
+    }
 
     var body: some View {
         NavigationView {
             ZStack {
+                Color.black.ignoresSafeArea()
+
             VStack {
+                Image("snapFacts")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(height: 100) // Scaled up 2.5x from 40
+                    .padding(.bottom, 10)
+
                 if snapDexManager.collectedCards.isEmpty {
                     VStack {
                         Spacer()
@@ -40,28 +60,49 @@ struct SnapDexView: View {
                 Spacer() // Pushes the button to the bottom
 
                 Button(action: {
-                    cardGenerationStatus = .awaitingAPI // Set status before showing camera
-                    showingCardGenerationView = true
+                    switch cardGenerationStatus {
+                    case .none:
+                        cardGenerationStatus = .awaitingAPI
+                        showingCardGenerationView = true
+                    case .ready:
+                        shouldNavigateToNewCardView = true
+                    case .awaitingAPI:
+                        // Button is disabled, no action
+                        break
+                    }
                 }) {
-                    Text("Find New Card")
-                        .font(.headline)
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(Color.blue)
-                        .foregroundColor(.white)
-                        .cornerRadius(10)
+                    HStack {
+                        if cardGenerationStatus == .awaitingAPI {
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                        } else {
+                            Image(systemName: "camera.viewfinder")
+                        }
+                        Text(buttonText)
+                    }
+                    .font(.headline)
+                    .foregroundColor(.white)
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                    .background(
+                        LinearGradient(
+                            gradient: Gradient(colors: [Color.purple, Color.blue.opacity(0.8), Color.pink]),
+                            startPoint: animateGradient ? .topLeading : .bottomTrailing,
+                            endPoint: animateGradient ? .bottomTrailing : .topLeading
+                        )
+                    )
+                    .clipShape(Capsule())
+                    .shadow(color: .purple.opacity(0.7), radius: 10, y: 5)
+                    .onAppear {
+                        withAnimation(.linear(duration: 2.0).repeatForever(autoreverses: true)) {
+                            animateGradient = true
+                        }
+                    }
                 }
+                .disabled(cardGenerationStatus == .awaitingAPI)
                 .padding()
             }
-            // New Status Button Overlay
-            VStack {
-                Spacer()
-                HStack {
-                    Spacer()
-                    statusButton
-                        .padding(20) // Adjust padding as needed
-                }
-            }
+
             .background(
                 // NavigationLink for the new card, activated programmatically
                 NavigationLink(destination: CardView(cardContent: newlyGeneratedCard ?? SampleCardData.vansOldSkool, isFromSnapDex: false, onDismiss: {
@@ -74,7 +115,7 @@ struct SnapDexView: View {
                 }
             )
         }
-        .navigationTitle("SnapDex")
+        .navigationBarHidden(true)
         .sheet(isPresented: $showingCardGenerationView, onDismiss: {
             print("[SnapDexView] CameraView Sheet: onDismiss called. Current status: \(self.cardGenerationStatus).")
             // This onDismiss is called when CameraView dismisses itself or is manually dismissed.
@@ -107,48 +148,7 @@ struct SnapDexView: View {
         }
     }
 
-    // Computed property for the status button's view
-    @ViewBuilder
-    private var statusButton: some View {
-        Button(action: {
-            switch cardGenerationStatus {
-            case .ready:
-                if newlyGeneratedCard != nil {
-                    print("Status button tapped: New card ready! Triggering navigation.")
-                    shouldNavigateToNewCardView = true
-                    // Status and newlyGeneratedCard will be reset by CardView's onDismiss or NavLink's isActive binding
-                } else {
-                    print("Status button tapped: Ready, but no card data available.")
-                    cardGenerationStatus = .none // Reset if something went wrong
-                }
-            case .awaitingAPI, .none:
-                // Button does nothing in these states, or you could show an alert/info.
-                print("Status button tapped: Status is \(cardGenerationStatus). No action.")
-                break
-            }
-        }) {
-            HStack {
-                if let imageName = cardGenerationStatus.systemImageName {
-                    Image(systemName: imageName)
-                }
-                if !cardGenerationStatus.label.isEmpty {
-                    Text(cardGenerationStatus.label)
-                }
-            }
-            .padding(cardGenerationStatus == .none ? 10 : 12) // Smaller padding for .none state
-            .background(cardGenerationStatus.color)
-            .foregroundColor(cardGenerationStatus == .awaitingAPI ? .black : .white) // Yellow bg needs dark text
-            .if(cardGenerationStatus == .none) { view in
-                view.clipShape(Circle())
-            }
-            .if(cardGenerationStatus != .none) { view in
-                view.clipShape(Capsule())
-            }
-            .shadow(radius: 5)
-            .animation(.spring(), value: cardGenerationStatus) // Animate status changes
-        }
-        .disabled(cardGenerationStatus == .awaitingAPI || (cardGenerationStatus == .none && cardGenerationStatus.label.isEmpty)) // Disable if awaiting or if .none is just a dot // Potentially disable if .none is just a grey dot with no action
-    }
+
 }
 
 // Helper for conditional modifiers
@@ -166,29 +166,50 @@ struct SnapDexCardCell: View {
     let card: CardContent
 
     var body: some View {
-        VStack {
-            // Placeholder for card image - replace with actual image loading
-            if let uiImage = UIImage(named: card.localImageName) ?? loadImageFromFile(imageName: card.localImageName) {
-                 Image(uiImage: uiImage)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 80, height: 80)
-                    .clipped()
-                    .cornerRadius(8)
-            } else {
-                Rectangle()
-                    .fill(Color.gray.opacity(0.3))
-                    .frame(width: 80, height: 80)
-                    .cornerRadius(8)
-                    .overlay(Text("No Image").font(.caption))
+        VStack(spacing: 0) {
+            // --- FRAMED IMAGE CONTAINER ---
+            ZStack {
+                // Frame background color
+                Color(UIColor.systemGray6)
+
+                if let uiImage = UIImage(named: card.localImageName) ?? loadImageFromFile(imageName: card.localImageName) {
+                     Image(uiImage: uiImage)
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .padding(4) // Padding creates the frame
+                } else {
+                    Rectangle()
+                        .fill(Color.gray.opacity(0.3))
+                        .overlay(Image(systemName: "photo").font(.largeTitle).foregroundColor(.white))
+                }
             }
-            Text(card.title)
-                .font(.caption)
-                .lineLimit(1)
+            .aspectRatio(1.0, contentMode: .fit) // Make image container square
+            .clipped()
+
+            // --- INFO SECTION ---
+            HStack {
+                Text(card.title)
+                    .font(.system(size: 12, weight: .bold))
+                    .lineLimit(1)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                if let typeStat = card.stats.first {
+                    Text(typeStat.value.displayString.uppercased())
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundColor(.secondary)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 3)
+                        .background(Color(UIColor.systemGray5))
+                        .cornerRadius(5)
+                        .lineLimit(1)
+                }
+            }
+            .padding(8)
+            .background(Color.white)
         }
-        .padding(5)
-        .background(Color.gray.opacity(0.1))
-        .cornerRadius(10)
+        .background(Color.white)
+        .cornerRadius(8)
+        .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
     }
     
     // Helper function to load image from file system if not in asset catalog

@@ -57,7 +57,7 @@ struct CardRecipe {
 
 
         .artPrompt : """
-        Digital painting in the style of a modern concept artist, consistent across all images. Generate only one image. Depict a single, primary subject: a whimsical creature inspired by {{visualTraits}}. The creature must be easily recognizable and the main focus. The creature is in its natural environment, which should be complementary but not distracting. The background must be clean, simple, and uncluttered. IMPORTANT: The generated image itself should NOT contain any frames, borders, or card-like elements; it should be a clean illustration of the subject in its environment, suitable for later placement onto a trading card. The overall artistic style should be cute, charming, with clear lines and appealing colors. Do not generate multiple sketches, variations, or panels.
+        Digital painting in the style of a modern concept artist, consistent across all images. Generate only one image. Depict a single, primary subject: a creature with the {{visualTraits}}. The creature must be easily recognizable and the main focus. The creature is in its natural environment, which should be complementary but not distracting. The background must be clean, simple, and uncluttered. IMPORTANT: The generated image itself should NOT contain any frames, borders, or card-like elements; it should be a clean illustration of the subject in its environment, suitable for later placement onto a trading card. The overall artistic style should be cute, charming, with clear lines and appealing colors. The initial subject or object should be recognizable in the creature. Do not generate multiple sketches, variations, or panels.
         """,
 
         .statsJSON : { () -> String in
