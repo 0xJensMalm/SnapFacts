@@ -326,7 +326,6 @@ struct CardView: View {
                     .padding(.bottom, geometry.size.height * 0.05)
                 }
             }
-
         }
         // .environmentObject(themeManager) // Already provided by parent or App
         .onDisappear {
